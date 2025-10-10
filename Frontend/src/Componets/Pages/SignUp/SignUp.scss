@@ -1,0 +1,41 @@
+.signup-container {
+  background-color: rgb(225, 232, 235);
+  width: 55rem;
+  height: 40rem;
+  display: flex;
+  justify-content: space-between;
+
+  &_title {
+    // text-align: center;
+    // font-size: 2rem;
+    // font-weight: 600;
+    // margin-bottom: 1.5rem;
+    // height: 25%;
+    position: relative;
+    top: 1rem;
+    left: 25rem;
+    background: linear-gradient(90deg,  #0056b3 10%,#7bff63 90%,);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &_left-section {
+    width: 50%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &_signup-form {
+      position: relative;
+      top: 10%;
+      width: 150%;
+    }
+  }
+
+  &_right-section {
+    padding: 2rem;
+    align-items: center;
+  }
+}

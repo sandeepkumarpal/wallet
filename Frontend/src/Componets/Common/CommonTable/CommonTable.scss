@@ -1,0 +1,42 @@
+.table {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1rem;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    vertical-align: middle;
+    border-color: #e9ecef;
+  }
+
+  thead {
+    background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+    color: #fff;
+
+    th {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #0056b3;
+    }
+  }
+
+  tbody tr {
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f1f7ff;
+    }
+  }
+
+  tbody td {
+    color: #333;
+  }
+}
+
+.table-responsive {
+  border-radius: 10px;
+}
