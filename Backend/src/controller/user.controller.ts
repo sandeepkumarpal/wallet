@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Request, Response } from "express";
 import { comparePassword, hashPassword } from "../utils/commonFunctions";
+import jwt from "jsonwebtoken";
 
 const registerUser = asyncHandler(
   async (req: Request, res: Response): Promise<void> => {
@@ -48,12 +49,55 @@ const loginUser = asyncHandler(
       password,
       user?.password || ""
     );
+
     if (!user || !isPasswordCorrect) {
-      throw new ApiError(400, "Invalid password");
+      throw new ApiError(400, "Invalid email or password");
     }
 
-    res.status(200).json({ message: "User Logged in successfully" });
+    console.log("JWT_SECRET :>> ", process.env.JWT_SECRET_KEY);
+    const payload = {
+      id: user._id,
+      email: user.email,
+      fullName: user.fullName,
+      profilePic: user.profilePic,
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "", {
+      expiresIn: "1h",
+    });
+
+    res
+      .status(200)
+      .json({ message: "User Logged in successfully", user: payload, token });
   }
 );
 
-export { registerUser, loginUser };
+const verifyToken = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    const token = req.headers.authorization?.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "");
+    res.status(200).json({ message: "Token verified", user: decoded });
+  }
+);
+
+const changePassword = asyncHandler(
+  async (req: Request, res: Response): Promise<void> => {
+    // const { currentPassword, newPassword } = req.body;
+    // const user = await User.findOne({ email: req.user?.email });
+    // const isPasswordCorrect = await comparePassword(
+    //   currentPassword,
+    //   user?.password || ""
+    // );
+    // if (!isPasswordCorrect) {
+    //   throw new ApiError(400, "Invalid current password");
+    // }
+    // const hashedPassword = await hashPassword(newPassword);
+    // user.password = hashedPassword;
+    // if (!user) {
+    //   throw new ApiError(400, "User not found");
+    // }
+    // await user.save();
+    // res.status(200).json({ message: "Password changed successfully" });
+  }
+);
+
+export { registerUser, loginUser, verifyToken, changePassword };
