@@ -1,16 +1,29 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-// Define a TypeScript interface for the User document
+export interface ICategoryBudget {
+  category: string;
+  limit: number;
+}
+
 export interface IUser extends Document {
   fullName: string;
   email: string;
   password: string;
   profilePic?: string;
+  monthlyBudget: number;
+  categoryBudgets: ICategoryBudget[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-// Create the schema
+const categoryBudgetSchema = new Schema<ICategoryBudget>(
+  {
+    category: { type: String, required: true, trim: true },
+    limit: { type: Number, required: true, min: 0 },
+  },
+  { _id: false }
+);
+
 const userSchema: Schema<IUser> = new Schema(
   {
     fullName: {
@@ -32,9 +45,17 @@ const userSchema: Schema<IUser> = new Schema(
     profilePic: {
       type: String,
     },
+    monthlyBudget: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    categoryBudgets: {
+      type: [categoryBudgetSchema],
+      default: [],
+    },
   },
   { timestamps: true }
 );
 
-// Create and export the model
 export const User: Model<IUser> = mongoose.model<IUser>("User", userSchema);

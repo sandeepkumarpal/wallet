@@ -1,48 +1,74 @@
-import React from "react";
-import { Form, Row } from "react-bootstrap";
-import CommonInput from "../../Common/CommonInput/CommonInput";
-import CommonButton from "../../Common/CommonButton/CommonButton";
-import LoginIcon from "../../../assets/images/svgIcons/login.svg";
-import "./Login.scss";
-import axios from "axios";
-import API_URLS from "../../../utils/Apiurls";
+import { useState, type FormEvent } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { getErrorMessage, useAuth } from "../../../context/AuthContext";
+import PasswordField from "../../Common/PasswordField/PasswordField";
+import "./Auth.scss";
 
 const Login = () => {
-  const handleLogin = async () => {
-    const response: any = await axios.post(API_URLS.LOGIN_USER, {
-      email: "sandeep@gmail.com",
-      password: "Test@123",
-    });
-    console.log(response);
+  const { login, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!loading && user) return <Navigate to="/dashboard" replace />;
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      await login(email.trim(), password);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(getErrorMessage(err, "Login failed"));
+    } finally {
+      setSubmitting(false);
+    }
   };
+
   return (
-    <div className="login-container">
-      <h2 className="login-container_title">Login</h2>
-      <div className="left-section">
-        {" "}
-        <Form className="login-container_left-section_login-form">
-          <Row className="mb-3">
-            <CommonInput
-              label="Email"
-              type="email"
-              placeholder="Enter your email"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <Row className="mb-3">
-            <CommonInput
-              label="Password"
-              type="password"
-              placeholder="Enter your password"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <CommonButton onClick={handleLogin}>Login</CommonButton>
-        </Form>
+    <div className="auth-page">
+      <div className="auth-page__visual" aria-hidden>
+        <div className="auth-page__glow" />
+        <p className="auth-page__brand">Wallet</p>
+        <h2>Your monthly money, clearly.</h2>
+        <p>Track income, set a budget, and watch what remains.</p>
       </div>
-      <div className="login-container_right-section">
-        <img src={LoginIcon} alt="login" height="80%" width="70%" />
-      </div>
+
+      <form className="auth-page__card panel" onSubmit={onSubmit}>
+        <h1>Welcome back</h1>
+        <p className="auth-page__sub">Sign in to continue your budget.</p>
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="current-password"
+        />
+
+        <button className="btn btn-primary" type="submit" disabled={submitting}>
+          {submitting ? "Signing in…" : "Sign in"}
+        </button>
+
+        <p className="auth-page__switch">
+          New here? <Link to="/signup">Create an account</Link>
+        </p>
+      </form>
     </div>
   );
 };

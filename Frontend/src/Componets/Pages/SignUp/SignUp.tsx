@@ -1,58 +1,100 @@
-import React from "react";
-import { Form, Row } from "react-bootstrap";
-import CommonInput from "../../Common/CommonInput/CommonInput";
-import CommonButton from "../../Common/CommonButton/CommonButton";
-import SignUpIcon from "../../../assets/images/svgIcons/sign.svg";
-import "./SignUp.scss";
+import { useState, type FormEvent } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { getErrorMessage, useAuth } from "../../../context/AuthContext";
+import PasswordField from "../../Common/PasswordField/PasswordField";
+import "../Login/Auth.scss";
 
 const SignUp = () => {
+  const { register, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  if (!loading && user) return <Navigate to="/dashboard" replace />;
+
+  const onSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await register(fullName.trim(), email.trim(), password);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not create account"));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="signup-container">
-      <h2 className="signup-container_title">SignUp</h2>
-      <div className="left-section">
-        {" "}
-        <Form className="signup-container_left-section_signup-form">
-          <Row className="mb-3">
-            <CommonInput
-              label="Name"
-              type="text"
-              name="fullName"
-              placeholder="Enter your email"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <Row className="mb-3">
-            <CommonInput
-              label="Email"
-              type="email"
-              name="email"
-              placeholder="Enter your email"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <Row className="mb-3">
-            <CommonInput
-              label="Password"
-              type="text"
-              name="password"
-              placeholder="Enter your Password"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <Row className="mb-3">
-            <CommonInput
-              label="Confirm Password"
-              type="password"
-              placeholder="Confirm password"
-              onChange={(e) => console.log(e.target.value)}
-            />
-          </Row>
-          <CommonButton>Sign Up</CommonButton>
-        </Form>
+    <div className="auth-page">
+      <div className="auth-page__visual" aria-hidden>
+        <div className="auth-page__glow" />
+        <p className="auth-page__brand">Wallet</p>
+        <h2>Start this month right.</h2>
+        <p>One place for spending, income, and your monthly plan.</p>
       </div>
-      <div className="signup-container_right-section">
-        <img src={SignUpIcon} alt="signup" height="100%" width="60%" />
-      </div>
+
+      <form className="auth-page__card panel" onSubmit={onSubmit}>
+        <h1>Create account</h1>
+        <p className="auth-page__sub">Takes less than a minute.</p>
+        {error && <div className="alert alert-error">{error}</div>}
+
+        <div className="field">
+          <label htmlFor="fullName">Full name</label>
+          <input
+            id="fullName"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            required
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <PasswordField
+          id="password"
+          label="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
+        />
+        <PasswordField
+          id="confirm"
+          label="Confirm password"
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
+          autoComplete="new-password"
+        />
+
+        <button className="btn btn-primary" type="submit" disabled={submitting}>
+          {submitting ? "Creating…" : "Create account"}
+        </button>
+
+        <p className="auth-page__switch">
+          Already have an account? <Link to="/login">Sign in</Link>
+        </p>
+      </form>
     </div>
   );
 };

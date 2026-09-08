@@ -19,7 +19,7 @@ const CommonInput: React.FC<CommonInputProps> = ({
   type = "text",
   placeholder = "",
   value,
-  name,
+  name = "",
   onChange,
   disabled = false,
   isInvalid = false,
@@ -30,11 +30,12 @@ const CommonInput: React.FC<CommonInputProps> = ({
     {label && <Form.Label>{label}</Form.Label>}
     <Form.Control
       type={type}
+      name={name}
       placeholder={placeholder}
       value={value}
       onChange={onChange}
       disabled={disabled}
-      isInvalid={isInvalid || !!error} // Use error to set invalid state
+      isInvalid={isInvalid || !!error}
       style={{
         borderRadius: "8px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.05)",

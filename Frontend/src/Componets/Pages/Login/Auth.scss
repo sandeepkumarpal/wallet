@@ -1,0 +1,131 @@
+.auth-page {
+  width: min(980px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1rem 0 2rem;
+
+  &__visual {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    padding: 1.75rem 1.4rem;
+    min-height: 200px;
+    color: #f4fffb;
+    background:
+      linear-gradient(145deg, rgba(15, 79, 66, 0.95), rgba(26, 122, 98, 0.88)),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+    gap: 0.55rem;
+  }
+
+  &__glow {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    right: -40px;
+    top: -60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    filter: blur(10px);
+  }
+
+  &__brand {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  &__visual h2 {
+    position: relative;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    max-width: 14ch;
+  }
+
+  &__visual p:last-child {
+    position: relative;
+    max-width: 32ch;
+    color: rgba(244, 255, 251, 0.82);
+  }
+
+  &__card {
+    padding: 1.4rem 1.2rem 1.5rem;
+  }
+
+  &__card h1 {
+    font-size: 1.55rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__sub {
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+  }
+
+  &__switch {
+    margin-top: 1rem;
+    text-align: center;
+    color: var(--muted);
+
+    a {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+  }
+}
+
+.password-field {
+  &__wrap {
+    position: relative;
+  }
+
+  &__wrap input {
+    padding-right: 2.85rem;
+  }
+
+  &__toggle {
+    position: absolute;
+    right: 0.45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  &__toggle:hover,
+  &__toggle[aria-pressed="true"] {
+    color: var(--accent-2);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+}
+
+@media (min-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: stretch;
+    min-height: calc(100vh - 3rem);
+    padding-top: 2rem;
+
+    &__visual {
+      min-height: auto;
+      padding: 2.5rem;
+    }
+
+    &__card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2rem;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+.persistent-pages {
+  position: relative;
+  width: 100%;
+  /* Do not force tall empty scroll area */
+  min-height: 0;
+  overflow: hidden;
+}
+
+.page-pane {
+  width: 100%;
+}
+
+/* display:none keeps React mounted but removes inactive panes from scroll height */
+.page-pane:not(.is-active) {
+  display: none;
+}
+
+.page-pane.is-active {
+  display: block;
+}
