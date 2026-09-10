@@ -1,0 +1,28 @@
+{
+  "name": "Wallet — Monthly Budget",
+  "short_name": "Wallet",
+  "description": "Personal finance app for monthly budgeting",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#eef3f1",
+  "theme_color": "#1a7a62",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

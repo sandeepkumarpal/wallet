@@ -1,0 +1,38 @@
+.lang-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 160px;
+
+  &__label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  &__select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    background: var(--input-bg);
+    color: var(--input-ink);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  &.is-compact {
+    min-width: 0;
+
+    .lang-switcher__select {
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      min-width: 7.5rem;
+    }
+  }
+}
+
+.auth-page__card-top .lang-switcher {
+  position: static;
+}

@@ -1,33 +1,40 @@
+"use client";
+
 import { useState, useTransition, type MouseEvent } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../../../context/AuthContext";
 import ConfirmModal from "../ConfirmModal/ConfirmModal";
+import LanguageSwitcher from "../LanguageSwitcher/LanguageSwitcher";
 import NavActions from "./NavActions";
 import "./AppNav.scss";
 
-const links = [
-  { to: "/dashboard", label: "Home" },
-  { to: "/transactions", label: "Spend" },
-  { to: "/budget", label: "Budget" },
-  { to: "/profile", label: "You" },
-];
-
 const AppNav = () => {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const pathname = usePathname();
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [, startTransition] = useTransition();
+
+  const links = [
+    { to: "/dashboard", label: t("nav.home") },
+    { to: "/transactions", label: t("nav.spend") },
+    { to: "/budget", label: t("nav.budget") },
+    { to: "/profile", label: t("nav.you") },
+  ];
 
   const handleLogout = () => {
     logout();
     setConfirmLogout(false);
-    navigate("/login");
+    router.push("/login");
   };
 
   const go = (to: string) => (e: MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     startTransition(() => {
-      navigate(to);
+      router.push(to);
     });
   };
 
@@ -35,32 +42,38 @@ const AppNav = () => {
     <>
       <header className="top-nav">
         <div className="top-nav__inner">
-          <NavLink
-            to="/dashboard"
-            className="top-nav__brand"
+          <Link
+            href="/dashboard"
+            className={`top-nav__brand${pathname === "/dashboard" ? " active" : ""}`}
             onClick={go("/dashboard")}
           >
             <span className="top-nav__mark" aria-hidden />
-            Wallet
-          </NavLink>
+            {t("common.appName")}
+          </Link>
           <nav className="top-nav__links" aria-label="Primary">
             {links.map((link) => (
-              <NavLink key={link.to} to={link.to} onClick={go(link.to)}>
+              <Link
+                key={link.to}
+                href={link.to}
+                className={pathname === link.to ? "active" : undefined}
+                onClick={go(link.to)}
+              >
                 {link.label}
-              </NavLink>
+              </Link>
             ))}
           </nav>
           <div className="top-nav__user">
+            <LanguageSwitcher compact className="top-nav__lang" />
             <NavActions />
             <span className="top-nav__name">
-              {user?.fullName?.split(" ")[0] || "Account"}
+              {user?.fullName?.split(" ")[0] || t("common.account")}
             </span>
             <button
               type="button"
               className="btn btn-ghost top-nav__logout"
               onClick={() => setConfirmLogout(true)}
             >
-              Log out
+              {t("common.logOut")}
             </button>
           </div>
         </div>
@@ -68,23 +81,23 @@ const AppNav = () => {
 
       <nav className="bottom-nav" aria-label="Mobile">
         {links.map((link) => (
-          <NavLink
+          <Link
             key={link.to}
-            to={link.to}
-            className="bottom-nav__item"
+            href={link.to}
+            className={`bottom-nav__item${pathname === link.to ? " active" : ""}`}
             onClick={go(link.to)}
           >
             <span className="bottom-nav__dot" aria-hidden />
             <span>{link.label}</span>
-          </NavLink>
+          </Link>
         ))}
       </nav>
 
       <ConfirmModal
         open={confirmLogout}
-        title="Log out?"
-        message="You’ll need to sign in again to view your budget and transactions."
-        confirmLabel="Log out"
+        title={t("nav.logoutTitle")}
+        message={t("nav.logoutMessage")}
+        confirmLabel={t("common.logOut")}
         danger
         onConfirm={handleLogout}
         onClose={() => setConfirmLogout(false)}

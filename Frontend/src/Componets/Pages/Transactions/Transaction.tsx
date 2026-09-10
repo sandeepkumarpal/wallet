@@ -1,4 +1,15 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useForm,
+  type UseFormRegister,
+  type UseFormSetValue,
+  type FieldErrors,
+} from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
 import {
@@ -12,6 +23,15 @@ import {
   type Transaction,
 } from "../../../types/finance";
 import ConfirmModal from "../../Common/ConfirmModal/ConfirmModal";
+import FieldError from "../../Common/FieldError/FieldError";
+import EmptyState from "../../Common/EmptyState/EmptyState";
+import CategorySelect from "../../Common/CategorySelect/CategorySelect";
+import { CategoryIcon } from "../../Common/Icons/CategoryIcons";
+import {
+  ExpenseIcon,
+  IncomeIcon,
+  TransactionTypeIcon,
+} from "../../Common/Icons/TransactionIcons";
 import { getCache, setCache, invalidateCache } from "../../../utils/pageCache";
 import { TransactionSkeleton } from "../../Common/PageSkeleton/PageSkeleton";
 import { usePageGsap } from "../../../hooks/usePageGsap";
@@ -20,24 +40,26 @@ import {
   exportTransactionsPdf,
 } from "../../../utils/exportTransactions";
 import RecurringPanel from "./RecurringPanel";
+import {
+  createTransactionSchema,
+  type TransactionFormValues,
+} from "../../../validation/schemas";
 import "./Transaction.scss";
 import "../../Common/ConfirmModal/ConfirmModal.scss";
 
 const TX_TARGETS = [".transactions__tabs"] as const;
 
-const emptyForm = {
+const emptyForm: TransactionFormValues = {
   amount: "",
   description: "",
   date: new Date().toISOString().slice(0, 10),
   category: "Food",
   paymentMethod: "UPI",
-  expenseType: "expense" as ExpenseType,
+  expenseType: "expense",
   notes: "",
 };
 
-type FormState = typeof emptyForm;
-
-const toForm = (tx: Transaction): FormState => ({
+const toForm = (tx: Transaction): TransactionFormValues => ({
   amount: String(tx.amount),
   description: tx.description,
   date: new Date(tx.date).toISOString().slice(0, 10),
@@ -48,16 +70,26 @@ const toForm = (tx: Transaction): FormState => ({
 });
 
 const TransactionFormFields = ({
-  form,
-  setForm,
   idPrefix,
+  expenseType,
+  category,
+  paymentMethod,
+  register,
+  setValue,
+  errors,
+  t,
 }: {
-  form: FormState;
-  setForm: (next: FormState) => void;
   idPrefix: string;
+  expenseType: ExpenseType;
+  category: string;
+  paymentMethod: string;
+  register: UseFormRegister<TransactionFormValues>;
+  setValue: UseFormSetValue<TransactionFormValues>;
+  errors: FieldErrors<TransactionFormValues>;
+  t: TFunction;
 }) => {
   const categories =
-    form.expenseType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    expenseType === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
   return (
     <>
@@ -66,98 +98,120 @@ const TransactionFormFields = ({
           <button
             key={type}
             type="button"
-            className={`chip ${form.expenseType === type ? "is-active" : ""}`}
-            onClick={() =>
-              setForm({
-                ...form,
-                expenseType: type,
-                category:
-                  type === "income"
-                    ? INCOME_CATEGORIES[0]
-                    : EXPENSE_CATEGORIES[0],
-              })
-            }
+            className={`chip chip--with-icon ${expenseType === type ? "is-active" : ""}`}
+            onClick={() => {
+              setValue("expenseType", type, { shouldValidate: true });
+              setValue(
+                "category",
+                type === "income"
+                  ? INCOME_CATEGORIES[0]
+                  : EXPENSE_CATEGORIES[0],
+                { shouldValidate: true }
+              );
+            }}
           >
-            {type === "expense" ? "Expense" : "Income"}
+            {type === "expense" ? (
+              <ExpenseIcon size={16} />
+            ) : (
+              <IncomeIcon size={16} />
+            )}
+            {type === "expense"
+              ? t("transactions.expense")
+              : t("transactions.incomeType")}
           </button>
         ))}
       </div>
+      <input type="hidden" {...register("expenseType")} />
 
       <div className="transactions__grid">
         <div className="field">
-          <label htmlFor={`${idPrefix}-amount`}>Amount (₹)</label>
+          <label htmlFor={`${idPrefix}-amount`}>
+            {t("transactions.amount")}
+          </label>
           <input
             id={`${idPrefix}-amount`}
             type="number"
             min="0"
             step="1"
-            value={form.amount}
-            onChange={(e) => setForm({ ...form, amount: e.target.value })}
-            required
+            className={errors.amount ? "is-invalid" : undefined}
+            aria-invalid={Boolean(errors.amount)}
+            {...register("amount")}
           />
+          <FieldError message={errors.amount?.message} />
         </div>
         <div className="field">
-          <label htmlFor={`${idPrefix}-date`}>Date</label>
+          <label htmlFor={`${idPrefix}-date`}>{t("transactions.date")}</label>
           <input
             id={`${idPrefix}-date`}
             type="date"
-            value={form.date}
-            onChange={(e) => setForm({ ...form, date: e.target.value })}
-            required
+            className={errors.date ? "is-invalid" : undefined}
+            aria-invalid={Boolean(errors.date)}
+            {...register("date")}
           />
+          <FieldError message={errors.date?.message} />
         </div>
         <div className="field">
-          <label htmlFor={`${idPrefix}-description`}>Description</label>
+          <label htmlFor={`${idPrefix}-description`}>
+            {t("transactions.description")}
+          </label>
           <input
             id={`${idPrefix}-description`}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            required
+            className={errors.description ? "is-invalid" : undefined}
+            aria-invalid={Boolean(errors.description)}
+            {...register("description")}
           />
+          <FieldError message={errors.description?.message} />
         </div>
         <div className="field">
-          <label htmlFor={`${idPrefix}-category`}>Category</label>
-          <select
+          <label htmlFor={`${idPrefix}-category`}>
+            {t("transactions.category")}
+          </label>
+          <input type="hidden" {...register("category")} />
+          <CategorySelect
             id={`${idPrefix}-category`}
-            value={form.category}
-            onChange={(e) => setForm({ ...form, category: e.target.value })}
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-            {!categories.includes(form.category as never) && (
-              <option value={form.category}>{form.category}</option>
-            )}
-          </select>
+            value={category}
+            options={categories}
+            invalid={Boolean(errors.category)}
+            aria-invalid={Boolean(errors.category)}
+            onChange={(next) =>
+              setValue("category", next, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+          />
+          <FieldError message={errors.category?.message} />
         </div>
         <div className="field">
-          <label htmlFor={`${idPrefix}-payment`}>Payment method</label>
+          <label htmlFor={`${idPrefix}-payment`}>
+            {t("transactions.payment")}
+          </label>
           <select
             id={`${idPrefix}-payment`}
-            value={form.paymentMethod}
-            onChange={(e) =>
-              setForm({ ...form, paymentMethod: e.target.value })
-            }
+            className={errors.paymentMethod ? "is-invalid" : undefined}
+            aria-invalid={Boolean(errors.paymentMethod)}
+            {...register("paymentMethod")}
           >
             {PAYMENT_METHODS.map((m) => (
               <option key={m} value={m}>
                 {m}
               </option>
             ))}
-            {!PAYMENT_METHODS.includes(form.paymentMethod as never) && (
-              <option value={form.paymentMethod}>{form.paymentMethod}</option>
+            {!PAYMENT_METHODS.includes(paymentMethod as never) && (
+              <option value={paymentMethod}>{paymentMethod}</option>
             )}
           </select>
+          <FieldError message={errors.paymentMethod?.message} />
         </div>
         <div className="field">
-          <label htmlFor={`${idPrefix}-notes`}>Notes</label>
+          <label htmlFor={`${idPrefix}-notes`}>{t("transactions.notes")}</label>
           <input
             id={`${idPrefix}-notes`}
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            className={errors.notes ? "is-invalid" : undefined}
+            aria-invalid={Boolean(errors.notes)}
+            {...register("notes")}
           />
+          <FieldError message={errors.notes?.message} />
         </div>
       </div>
     </>
@@ -165,6 +219,7 @@ const TransactionFormFields = ({
 };
 
 const TransactionPage = () => {
+  const { t, i18n } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<"list" | "add" | "recurring">("list");
   const [month, setMonth] = useState(currentMonthValue());
@@ -180,8 +235,6 @@ const TransactionPage = () => {
   const [items, setItems] = useState<Transaction[]>(
     () => getCache<Transaction[]>(`tx:${currentMonthValue()}`) || []
   );
-  const [form, setForm] = useState(emptyForm);
-  const [editForm, setEditForm] = useState(emptyForm);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [deleting, setDeleting] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(
@@ -191,6 +244,32 @@ const TransactionPage = () => {
   const [deletingBusy, setDeletingBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const txSchema = useMemo(
+    () => createTransactionSchema(t),
+    [t, i18n.language]
+  );
+
+  const addForm = useForm<TransactionFormValues>({
+    resolver: yupResolver(txSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: emptyForm,
+  });
+
+  const editForm = useForm<TransactionFormValues>({
+    resolver: yupResolver(txSchema),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
+    defaultValues: emptyForm,
+  });
+
+  const addExpenseType = addForm.watch("expenseType");
+  const addCategory = addForm.watch("category");
+  const addPaymentMethod = addForm.watch("paymentMethod");
+  const editExpenseType = editForm.watch("expenseType");
+  const editCategory = editForm.watch("category");
+  const editPaymentMethod = editForm.watch("paymentMethod");
 
   usePageGsap({
     rootRef,
@@ -272,22 +351,21 @@ const TransactionPage = () => {
     }
   };
 
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (values: TransactionFormValues) => {
     setSaving(true);
     setError("");
     setSuccess("");
     try {
       await api.post(API_URLS.NEW_TRANSACTION, {
-        ...form,
-        amount: Number(form.amount),
+        ...values,
+        amount: Number(values.amount),
       });
-      setSuccess("Transaction saved");
-      setForm({
+      setSuccess(t("transactions.saved"));
+      addForm.reset({
         ...emptyForm,
-        expenseType: form.expenseType,
+        expenseType: values.expenseType,
         category:
-          form.expenseType === "income"
+          values.expenseType === "income"
             ? INCOME_CATEGORIES[0]
             : EXPENSE_CATEGORIES[0],
       });
@@ -295,7 +373,7 @@ const TransactionPage = () => {
       await load({ silent: true });
       await refreshSummary();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not save transaction"));
+      setError(getErrorMessage(err, t("transactions.saveFailed")));
     } finally {
       setSaving(false);
     }
@@ -303,7 +381,7 @@ const TransactionPage = () => {
 
   const openEdit = (tx: Transaction) => {
     setEditing(tx);
-    setEditForm(toForm(tx));
+    editForm.reset(toForm(tx));
     setError("");
   };
 
@@ -312,8 +390,7 @@ const TransactionPage = () => {
     setEditing(null);
   };
 
-  const onUpdate = async (e: FormEvent) => {
-    e.preventDefault();
+  const onUpdate = async (values: TransactionFormValues) => {
     if (!editing) return;
     setSaving(true);
     setError("");
@@ -322,8 +399,8 @@ const TransactionPage = () => {
       const { data } = await api.put(
         `${API_URLS.TRANSACTIONS}/${editing._id}`,
         {
-          ...editForm,
-          amount: Number(editForm.amount),
+          ...values,
+          amount: Number(values.amount),
         }
       );
       setItems((prev) => {
@@ -333,11 +410,11 @@ const TransactionPage = () => {
         setCache(`tx:${month}`, next);
         return next;
       });
-      setSuccess("Transaction updated");
+      setSuccess(t("transactions.updated"));
       setEditing(null);
       await refreshSummary();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not update transaction"));
+      setError(getErrorMessage(err, t("transactions.updateFailed")));
     } finally {
       setSaving(false);
     }
@@ -354,11 +431,11 @@ const TransactionPage = () => {
         setCache(`tx:${month}`, next);
         return next;
       });
-      setSuccess("Transaction deleted");
+      setSuccess(t("transactions.deleted"));
       setDeleting(null);
       await refreshSummary();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not delete"));
+      setError(getErrorMessage(err, t("transactions.deleteFailed")));
     } finally {
       setDeletingBusy(false);
     }
@@ -379,7 +456,7 @@ const TransactionPage = () => {
     <div className="transactions" ref={rootRef}>
       <div className="page-head">
         <div>
-          <h1>Transactions</h1>
+          <h1>{t("transactions.title")}</h1>
           <p>{monthLabel(month)}</p>
         </div>
         <div className="field" style={{ marginBottom: 0, minWidth: 180 }}>
@@ -399,21 +476,21 @@ const TransactionPage = () => {
           className={`chip ${tab === "list" ? "is-active" : ""}`}
           onClick={() => setTab("list")}
         >
-          History
+          {t("transactions.list")}
         </button>
         <button
           type="button"
           className={`chip ${tab === "add" ? "is-active" : ""}`}
           onClick={() => setTab("add")}
         >
-          Add new
+          {t("transactions.add")}
         </button>
         <button
           type="button"
           className={`chip ${tab === "recurring" ? "is-active" : ""}`}
           onClick={() => setTab("recurring")}
         >
-          Recurring
+          {t("transactions.recurring")}
         </button>
       </div>
 
@@ -428,19 +505,28 @@ const TransactionPage = () => {
             <div className="chip-row" role="tablist" aria-label="Filter type">
               {(
                 [
-                  { key: "all", label: "All" },
-                  { key: "expense", label: "Expenses" },
-                  { key: "income", label: "Income" },
+                  { key: "all", label: t("transactions.all"), icon: null },
+                  {
+                    key: "expense",
+                    label: t("transactions.expenses"),
+                    icon: "expense" as const,
+                  },
+                  {
+                    key: "income",
+                    label: t("transactions.income"),
+                    icon: "income" as const,
+                  },
                 ] as const
-              ).map(({ key, label }) => (
+              ).map(({ key, label, icon }) => (
                 <button
                   key={key}
                   type="button"
                   role="tab"
                   aria-selected={filter === key}
-                  className={`chip ${filter === key ? "is-active" : ""}`}
+                  className={`chip chip--with-icon ${filter === key ? "is-active" : ""}`}
                   onClick={() => setFilter(key)}
                 >
+                  {icon ? <TransactionTypeIcon type={icon} size={15} /> : null}
                   {label}
                   <span className="chip__count">{counts[key]}</span>
                 </button>
@@ -571,50 +657,82 @@ const TransactionPage = () => {
             {loading && items.length === 0 ? (
               <TransactionSkeleton />
             ) : filteredItems.length === 0 ? (
-              <div className="empty-state">
-                {items.length === 0
-                  ? "No transactions for this month."
-                  : `No ${filter === "all" ? "" : filter + " "}transactions.`}
-              </div>
+              <EmptyState
+                title={t("transactions.noRecordTitle")}
+                description={
+                  items.length === 0
+                    ? t("transactions.noRecordMonth")
+                    : t("transactions.noRecordFilter")
+                }
+                action={
+                  items.length === 0 ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setTab("add")}
+                    >
+                      {t("transactions.add")}
+                    </button>
+                  ) : undefined
+                }
+              />
             ) : (
               <ul className="tx-list">
                 {filteredItems.map((tx) => (
                   <li key={tx._id}>
-                    <div>
-                      <strong>{tx.description}</strong>
-                      <span>
-                        {tx.category} · {tx.paymentMethod} ·{" "}
-                        {new Date(tx.date).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                        })}
-                      </span>
+                    <div className="tx-list__row">
+                      <div className="tx-list__meta">
+                        <strong>{tx.description}</strong>
+                        <span className="tx-list__category">
+                          <CategoryIcon category={tx.category} />
+                          {tx.category} · {tx.paymentMethod} ·{" "}
+                          {new Date(tx.date).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                          })}
+                        </span>
+                      </div>
                     </div>
                     <div className="transactions__actions">
-                      <em
-                        className={
-                          tx.expenseType === "income"
-                            ? "is-income"
-                            : "is-expense"
-                        }
-                      >
-                        {tx.expenseType === "income" ? "+" : "−"}
-                        {formatINR(tx.amount)}
-                      </em>
+                      <div className="tx-list__amount">
+                        <em
+                          className={
+                            tx.expenseType === "income"
+                              ? "is-income"
+                              : "is-expense"
+                          }
+                        >
+                          {tx.expenseType === "income" ? "+" : "−"}
+                          {formatINR(tx.amount)}
+                        </em>
+                        <span
+                          className={`tx-type-icon ${
+                            tx.expenseType === "income"
+                              ? "is-income"
+                              : "is-expense"
+                          }`}
+                          aria-hidden
+                        >
+                          <TransactionTypeIcon
+                            type={tx.expenseType}
+                            size={18}
+                          />
+                        </span>
+                      </div>
                       <div className="transactions__btn-row">
                         <button
                           type="button"
                           className="btn btn-edit"
                           onClick={() => openEdit(tx)}
                         >
-                          Edit
+                          {t("common.edit")}
                         </button>
                         <button
                           type="button"
                           className="btn btn-danger"
                           onClick={() => setDeleting(tx)}
                         >
-                          Delete
+                          {t("common.delete")}
                         </button>
                       </div>
                     </div>
@@ -628,16 +746,22 @@ const TransactionPage = () => {
       <form
         className={`panel transactions__form tab-pane ${tab === "add" ? "is-active" : ""}`}
         aria-hidden={tab !== "add"}
-        onSubmit={onSubmit}
+        onSubmit={addForm.handleSubmit(onSubmit)}
+        noValidate
       >
-          <h2>Add transaction</h2>
+          <h2>{t("transactions.addTitle")}</h2>
           <TransactionFormFields
-            form={form}
-            setForm={setForm}
             idPrefix="add"
+            expenseType={addExpenseType}
+            category={addCategory}
+            paymentMethod={addPaymentMethod}
+            register={addForm.register}
+            setValue={addForm.setValue}
+            errors={addForm.formState.errors}
+            t={t}
           />
           <button className="btn btn-primary" type="submit" disabled={saving}>
-            {saving ? "Saving…" : "Save transaction"}
+            {saving ? t("transactions.saving") : t("transactions.save")}
           </button>
       </form>
 
@@ -665,13 +789,19 @@ const TransactionPage = () => {
             aria-modal="true"
             aria-labelledby="edit-tx-title"
             onClick={(e) => e.stopPropagation()}
-            onSubmit={onUpdate}
+            onSubmit={editForm.handleSubmit(onUpdate)}
+            noValidate
           >
-            <h2 id="edit-tx-title">Edit transaction</h2>
+            <h2 id="edit-tx-title">{t("transactions.editTitle")}</h2>
             <TransactionFormFields
-              form={editForm}
-              setForm={setEditForm}
               idPrefix="edit"
+              expenseType={editExpenseType}
+              category={editCategory}
+              paymentMethod={editPaymentMethod}
+              register={editForm.register}
+              setValue={editForm.setValue}
+              errors={editForm.formState.errors}
+              t={t}
             />
             <div className="modal-card__actions">
               <button
@@ -680,14 +810,16 @@ const TransactionPage = () => {
                 onClick={closeEdit}
                 disabled={saving}
               >
-                Cancel
+                {t("common.cancel")}
               </button>
               <button
                 className="btn btn-primary"
                 type="submit"
                 disabled={saving}
               >
-                {saving ? "Updating…" : "Save changes"}
+                {saving
+                  ? t("transactions.updating")
+                  : t("transactions.saveChanges")}
               </button>
             </div>
           </form>
@@ -696,9 +828,9 @@ const TransactionPage = () => {
 
       <ConfirmModal
         open={!!deleting}
-        title="Delete transaction?"
+        title={t("transactions.deleteTitle")}
         message={deletePreview}
-        confirmLabel="Delete"
+        confirmLabel={t("common.delete")}
         danger
         loading={deletingBusy}
         onConfirm={() => void confirmDelete()}

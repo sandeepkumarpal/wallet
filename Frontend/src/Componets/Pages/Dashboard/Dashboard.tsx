@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
@@ -12,7 +14,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { useTranslation } from "react-i18next";
+import { usePathname } from "next/navigation";
 import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
 import {
@@ -27,6 +31,8 @@ import { useLayoutReady } from "../../../hooks/useLayoutReady";
 import { useDashboardGsap } from "../../../hooks/useDashboardGsap";
 import { useBudgetAlerts } from "../../../hooks/useBudgetAlerts";
 import { DashboardSkeleton } from "../../Common/PageSkeleton/PageSkeleton";
+import EmptyState from "../../Common/EmptyState/EmptyState";
+import { TransactionTypeIcon } from "../../Common/Icons/TransactionIcons";
 import "./Dashboard.scss";
 
 const PIE_COLORS = [
@@ -51,8 +57,9 @@ const daysLeftInMonth = (month: string) => {
 };
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
   const layoutReady = useLayoutReady();
   const chartsReady = layoutReady;
@@ -200,7 +207,7 @@ const Dashboard = () => {
               onChange={(e) => setMonth(e.target.value)}
             />
           </div>
-          <Link to="/transactions" className="btn btn-primary dashboard__add">
+          <Link href="/transactions" className="btn btn-primary dashboard__add">
             Add transaction
           </Link>
         </div>
@@ -225,7 +232,7 @@ const Dashboard = () => {
                 <h2>Set this month’s budget</h2>
                 <p>Track what’s left after everyday spending.</p>
               </div>
-              <Link to="/budget" className="btn btn-primary dashboard__add">
+              <Link href="/budget" className="btn btn-primary dashboard__add">
                 Set budget
               </Link>
             </div>
@@ -275,7 +282,7 @@ const Dashboard = () => {
                   {formatINR(summary.monthlyBudget)}
                 </p>
               </div>
-              <Link to="/budget" className="btn btn-ghost dashboard__ghost">
+              <Link href="/budget" className="btn btn-ghost dashboard__ghost">
                 Adjust
               </Link>
             </div>
@@ -377,14 +384,19 @@ const Dashboard = () => {
 
             <section className="panel dashboard__cats">
               <div className="dashboard__budget-top">
-                <h2>By category</h2>
+                <h2>{t("dashboard.byCategory")}</h2>
                 <span className="dashboard__chip">Expenses</span>
               </div>
               {categoryPieData.length === 0 ? (
-                <div className="empty-state">
-                  No expenses yet.{" "}
-                  <Link to="/transactions">Log a purchase</Link>
-                </div>
+                <EmptyState
+                  title={t("transactions.noRecordTitle")}
+                  description={t("dashboard.noExpenses")}
+                  action={
+                    <Link href="/transactions" className="btn btn-primary">
+                      {t("dashboard.logPurchase")}
+                    </Link>
+                  }
+                />
               ) : (
                 <>
                   <div className="dashboard__pie-wrap">
@@ -463,13 +475,14 @@ const Dashboard = () => {
 
           <section className="panel dashboard__type-pie">
             <div className="dashboard__budget-top">
-              <h2>Income vs expense</h2>
+              <h2>{t("dashboard.incomeVsExpense")}</h2>
               <span className="dashboard__chip">This month</span>
             </div>
             {typePieData.length === 0 ? (
-              <div className="empty-state">
-                Add income or expenses to see the split.
-              </div>
+              <EmptyState
+                title={t("transactions.noRecordTitle")}
+                description={t("dashboard.addIncomeOrExpense")}
+              />
             ) : (
               <div className="dashboard__type-pie-layout">
                 <div className="dashboard__pie-wrap">
@@ -558,32 +571,31 @@ const Dashboard = () => {
 
           <section className="panel dashboard__recent">
             <div className="dashboard__budget-top">
-              <h2>Recent activity</h2>
+              <h2>{t("dashboard.recent")}</h2>
               <Link
-                to="/transactions"
+                href="/transactions"
                 className="btn btn-ghost dashboard__ghost"
               >
-                View all
+                {t("dashboard.viewAll")}
               </Link>
             </div>
             {summary.recent.length === 0 ? (
-              <div className="empty-state">
-                Nothing logged for {monthLabel(month)}.{" "}
-                <Link to="/transactions">Add your first transaction</Link>
-              </div>
+              <EmptyState
+                title={t("transactions.noRecordTitle")}
+                description={t("dashboard.nothingLogged", {
+                  month: monthLabel(month),
+                })}
+                action={
+                  <Link href="/transactions" className="btn btn-primary">
+                    {t("dashboard.addFirst")}
+                  </Link>
+                }
+              />
             ) : (
               <ul className="tx-list">
                 {summary.recent.map((tx) => (
                   <li key={tx._id}>
                     <div className="tx-list__main">
-                      <span
-                        className={`tx-list__dot ${
-                          tx.expenseType === "income"
-                            ? "is-income"
-                            : "is-expense"
-                        }`}
-                        aria-hidden
-                      />
                       <div>
                         <strong>{tx.description}</strong>
                         <span>
@@ -595,14 +607,31 @@ const Dashboard = () => {
                         </span>
                       </div>
                     </div>
-                    <em
-                      className={
-                        tx.expenseType === "income" ? "is-income" : "is-expense"
-                      }
-                    >
-                      {tx.expenseType === "income" ? "+" : "−"}
-                      {formatINR(tx.amount)}
-                    </em>
+                    <div className="tx-list__amount">
+                      <em
+                        className={
+                          tx.expenseType === "income"
+                            ? "is-income"
+                            : "is-expense"
+                        }
+                      >
+                        {tx.expenseType === "income" ? "+" : "−"}
+                        {formatINR(tx.amount)}
+                      </em>
+                      <span
+                        className={`tx-type-icon ${
+                          tx.expenseType === "income"
+                            ? "is-income"
+                            : "is-expense"
+                        }`}
+                        aria-hidden
+                      >
+                        <TransactionTypeIcon
+                          type={tx.expenseType}
+                          size={18}
+                        />
+                      </span>
+                    </div>
                   </li>
                 ))}
               </ul>

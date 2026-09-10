@@ -1,23 +1,27 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNotifications } from "../../../context/NotificationContext";
 import { useTheme } from "../../../context/ThemeContext";
 
-const timeAgo = (ts: number) => {
-  const mins = Math.floor((Date.now() - ts) / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-};
-
 const NavActions = () => {
+  const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
   const { notifications, unreadCount, markRead, markAllRead, clearAll } =
     useNotifications();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  const timeAgo = (ts: number) => {
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 1) return t("common.justNow");
+    if (mins < 60) return t("common.minsAgo", { count: mins });
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return t("common.hoursAgo", { count: hrs });
+    const days = Math.floor(hrs / 24);
+    return t("common.daysAgo", { count: days });
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -40,8 +44,10 @@ const NavActions = () => {
       <button
         type="button"
         className="nav-icon-btn"
-        aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-        title={theme === "dark" ? "Light mode" : "Dark mode"}
+        aria-label={
+          theme === "dark" ? t("nav.switchToLight") : t("nav.switchToDark")
+        }
+        title={theme === "dark" ? t("nav.lightMode") : t("nav.darkMode")}
         onClick={toggleTheme}
       >
         {theme === "dark" ? (
@@ -64,7 +70,11 @@ const NavActions = () => {
       <button
         type="button"
         className={`nav-icon-btn${unreadCount ? " has-unread" : ""}`}
-        aria-label={`Notifications${unreadCount ? `, ${unreadCount} unread` : ""}`}
+        aria-label={
+          unreadCount
+            ? t("nav.notificationsUnread", { count: unreadCount })
+            : t("nav.notifications")
+        }
         aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v);
@@ -84,27 +94,28 @@ const NavActions = () => {
       </button>
 
       {open && (
-        <div className="nav-notify" role="dialog" aria-label="Notifications">
+        <div
+          className="nav-notify"
+          role="dialog"
+          aria-label={t("nav.notifications")}
+        >
           <div className="nav-notify__head">
-            <strong>Notifications</strong>
+            <strong>{t("nav.notifications")}</strong>
             <div className="nav-notify__actions">
               {unreadCount > 0 && (
                 <button type="button" onClick={markAllRead}>
-                  Mark read
+                  {t("nav.markRead")}
                 </button>
               )}
               {notifications.length > 0 && (
                 <button type="button" onClick={clearAll}>
-                  Clear
+                  {t("common.clear")}
                 </button>
               )}
             </div>
           </div>
           {notifications.length === 0 ? (
-            <p className="nav-notify__empty">
-              No alerts yet. You’ll see budget warnings here at 50%, 80%, and
-              100%.
-            </p>
+            <p className="nav-notify__empty">{t("nav.noAlerts")}</p>
           ) : (
             <ul className="nav-notify__list">
               {notifications.map((n) => (

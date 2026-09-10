@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState, type FormEvent } from "react";
 import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
@@ -9,6 +11,14 @@ import {
   type ExpenseType,
   type RecurringRule,
 } from "../../../types/finance";
+import EmptyState from "../../Common/EmptyState/EmptyState";
+import CategorySelect from "../../Common/CategorySelect/CategorySelect";
+import { CategoryIcon } from "../../Common/Icons/CategoryIcons";
+import {
+  ExpenseIcon,
+  IncomeIcon,
+  TransactionTypeIcon,
+} from "../../Common/Icons/TransactionIcons";
 
 const empty = {
   amount: "",
@@ -110,7 +120,7 @@ const RecurringPanel = ({ onChanged }: Props) => {
             <button
               key={type}
               type="button"
-              className={`chip ${form.expenseType === type ? "is-active" : ""}`}
+              className={`chip chip--with-icon ${form.expenseType === type ? "is-active" : ""}`}
               onClick={() =>
                 setForm({
                   ...form,
@@ -119,7 +129,12 @@ const RecurringPanel = ({ onChanged }: Props) => {
                 })
               }
             >
-              {type}
+              {type === "income" ? (
+                <IncomeIcon size={16} />
+              ) : (
+                <ExpenseIcon size={16} />
+              )}
+              {type === "income" ? "Income" : "Expense"}
             </button>
           ))}
         </div>
@@ -160,17 +175,12 @@ const RecurringPanel = ({ onChanged }: Props) => {
           </div>
           <div className="field">
             <label htmlFor="rec-cat">Category</label>
-            <select
+            <CategorySelect
               id="rec-cat"
               value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+              options={categories}
+              onChange={(category) => setForm({ ...form, category })}
+            />
           </div>
           <div className="field">
             <label htmlFor="rec-pay">Payment</label>
@@ -199,26 +209,47 @@ const RecurringPanel = ({ onChanged }: Props) => {
         {loading ? (
           <p className="recurring-panel__hint">Loading…</p>
         ) : items.length === 0 ? (
-          <div className="empty-state">No recurring rules yet.</div>
+          <EmptyState
+            title="No record found"
+            description="No recurring rules yet. Add one above to auto-create monthly transactions."
+          />
         ) : (
           <ul className="tx-list">
             {items.map((item) => (
               <li key={item._id}>
-                <div>
-                  <strong>{item.description}</strong>
-                  <span>
-                    Day {item.dayOfMonth} · {item.category} · {item.expenseType}
-                    {!item.active ? " · paused" : ""}
-                  </span>
+                <div className="tx-list__row">
+                  <div className="tx-list__meta">
+                    <strong>{item.description}</strong>
+                    <span className="tx-list__category">
+                      <CategoryIcon category={item.category} />
+                      Day {item.dayOfMonth} · {item.category} ·{" "}
+                      {item.expenseType}
+                      {!item.active ? " · paused" : ""}
+                    </span>
+                  </div>
                 </div>
                 <div className="transactions__actions">
-                  <em
-                    className={
-                      item.expenseType === "income" ? "is-income" : "is-expense"
-                    }
-                  >
-                    {formatINR(item.amount)}
-                  </em>
+                  <div className="tx-list__amount">
+                    <em
+                      className={
+                        item.expenseType === "income"
+                          ? "is-income"
+                          : "is-expense"
+                      }
+                    >
+                      {formatINR(item.amount)}
+                    </em>
+                    <span
+                      className={`tx-type-icon ${
+                        item.expenseType === "income"
+                          ? "is-income"
+                          : "is-expense"
+                      }`}
+                      aria-hidden
+                    >
+                      <TransactionTypeIcon type={item.expenseType} size={18} />
+                    </span>
+                  </div>
                   <div className="transactions__btn-row">
                     <button
                       type="button"

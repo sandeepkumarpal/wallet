@@ -1,0 +1,133 @@
+.category-select {
+  position: relative;
+  width: 100%;
+  z-index: 0;
+
+  &.is-open {
+    z-index: 40;
+  }
+
+  &__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.8rem 0.95rem;
+    background: var(--input-bg);
+    color: var(--input-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  &.is-compact &__trigger {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.92rem;
+  }
+
+  &__trigger:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  &.is-open &__trigger,
+  &__trigger:hover {
+    border-color: var(--accent);
+  }
+
+  &.is-invalid &__trigger {
+    border-color: #c0392b;
+  }
+
+  &__value {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(0.4rem, 1.5vw, 0.55rem);
+    min-width: 0;
+
+    > span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__caret {
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  &__menu {
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(15, 40, 35, 0.18);
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  &__menu--portal {
+    position: fixed;
+    z-index: 1200;
+  }
+
+  &__menu > li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: clamp(0.45rem, 1.5vw, 0.6rem);
+    min-height: clamp(2.25rem, 6vw, 2.5rem);
+    border: 0;
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  &__option:hover,
+  &__option:focus-visible {
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+    outline: none;
+  }
+
+  &__option.is-selected {
+    background: var(--accent);
+    color: #fff;
+
+    .category-icon {
+      color: #fff;
+    }
+  }
+}
+
+.field:has(.category-select.is-open),
+.budget-page__cat-edit-row:has(.category-select.is-open) {
+  position: relative;
+  z-index: 40;
+}
+
+@media (max-width: 560px) {
+  .category-select__option {
+    min-height: 2.55rem;
+    padding: 0.65rem 0.75rem;
+  }
+}

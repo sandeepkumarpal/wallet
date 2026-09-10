@@ -75,6 +75,10 @@
       font-size: 0.85rem;
       width: auto;
     }
+
+    .top-nav__lang {
+      display: none;
+    }
   }
 }
 
@@ -267,7 +271,8 @@
     }
 
     &__user .top-nav__name,
-    &__user .top-nav__logout {
+    &__user .top-nav__logout,
+    &__user .top-nav__lang {
       display: inline-flex;
     }
   }

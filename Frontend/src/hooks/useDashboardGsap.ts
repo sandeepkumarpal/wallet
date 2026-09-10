@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
 import gsap from "gsap";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 
 type Options = {
   rootRef: RefObject<HTMLElement | null>;
@@ -17,7 +17,7 @@ export const useDashboardGsap = ({
   enabled,
   budgetProgress,
 }: Options) => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const isHome = pathname === "/dashboard";
   const playedForVisit = useRef(false);
   const progressRef = useRef(budgetProgress);

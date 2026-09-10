@@ -1,6 +1,6 @@
 import { useEffect, useRef, type RefObject } from "react";
 import gsap from "gsap";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 
 type Options = {
   rootRef: RefObject<HTMLElement | null>;
@@ -18,7 +18,7 @@ export const usePageGsap = ({
   enabled = true,
   targets,
 }: Options) => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const active = pathname === path;
   const playedForVisit = useRef(false);
   const targetsKey = targets.join("|");

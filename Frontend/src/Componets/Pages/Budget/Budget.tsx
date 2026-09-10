@@ -1,4 +1,7 @@
+"use client";
+
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
 import {
@@ -12,6 +15,8 @@ import {
 import { useAuth } from "../../../context/AuthContext";
 import { getCache, setCache, subscribeCache } from "../../../utils/pageCache";
 import { BudgetSkeleton } from "../../Common/PageSkeleton/PageSkeleton";
+import CategorySelect from "../../Common/CategorySelect/CategorySelect";
+import { CategoryIcon } from "../../Common/Icons/CategoryIcons";
 import { usePageGsap } from "../../../hooks/usePageGsap";
 import "./Budget.scss";
 
@@ -23,6 +28,7 @@ const BUDGET_TARGETS = [
 ] as const;
 
 const Budget = () => {
+  const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement>(null);
   const { refreshUser } = useAuth();
   const [month] = useState(currentMonthValue());
@@ -70,7 +76,7 @@ const Budget = () => {
       applySummary(data);
       setCache(`summary:${month}`, data);
     } catch (err) {
-      setError(getErrorMessage(err, "Could not load budget"));
+      setError(getErrorMessage(err, t("budget.loadFailed")));
       setLoading(false);
     }
   };
@@ -102,11 +108,11 @@ const Budget = () => {
     setSuccess("");
     try {
       await api.put(API_URLS.BUDGET, { monthlyBudget: Number(budget) });
-      setSuccess("Monthly budget updated");
+      setSuccess(t("budget.updated"));
       await refreshUser();
       await load();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not update budget"));
+      setError(getErrorMessage(err, t("budget.updateFailed")));
     } finally {
       setSaving(false);
     }
@@ -121,11 +127,11 @@ const Budget = () => {
       await api.put(API_URLS.CATEGORY_BUDGETS, {
         categoryBudgets: catRows.filter((r) => r.category && r.limit >= 0),
       });
-      setSuccess("Category budgets saved");
+      setSuccess(t("budget.categoriesSaved"));
       await refreshUser();
       await load();
     } catch (err) {
-      setError(getErrorMessage(err, "Could not save category budgets"));
+      setError(getErrorMessage(err, t("budget.categoriesFailed")));
     } finally {
       setSavingCats(false);
     }
@@ -150,7 +156,7 @@ const Budget = () => {
     <div className="budget-page" ref={rootRef}>
       <div className="page-head">
         <div>
-          <h1>Monthly budget</h1>
+          <h1>{t("budget.title")}</h1>
           <p>Plan for {monthLabel(month)}</p>
         </div>
       </div>
@@ -163,23 +169,23 @@ const Budget = () => {
       ) : (
         <>
           <section className="panel budget-page__hero">
-            <p>Remaining this month</p>
+            <p>{t("budget.remaining")}</p>
             <h2>{formatINR(remaining)}</h2>
             <div className="dashboard__bar" style={{ marginTop: "1rem" }}>
               <span style={{ width: `${usedPct}%` }} />
             </div>
             <small>
               {summary
-                ? `${formatINR(summary.expense)} spent of ${formatINR(summary.monthlyBudget)}`
+                ? t("budget.spentOf", { spent: formatINR(summary.expense), budget: formatINR(summary.monthlyBudget) })
                 : "—"}
             </small>
           </section>
 
           <form className="panel budget-page__form" onSubmit={onSubmit}>
-            <h2>Set spending limit</h2>
-            <p>This is your target ceiling for expenses this month.</p>
+            <h2>{t("budget.monthlyTitle")}</h2>
+            <p>{t("budget.monthlySub")}</p>
             <div className="field">
-              <label htmlFor="budget">Monthly budget (₹)</label>
+              <label htmlFor="budget">{t("budget.monthlyLabel")}</label>
               <input
                 id="budget"
                 type="number"
@@ -191,7 +197,7 @@ const Budget = () => {
               />
             </div>
             <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save budget"}
+              {saving ? t("budget.updating") : t("budget.update")}
             </button>
           </form>
 
@@ -199,11 +205,11 @@ const Budget = () => {
             className="panel budget-page__category"
             onSubmit={onSaveCategories}
           >
-            <h2>Category budgets</h2>
-            <p>Cap spend per category. Alerts fire at 50%, 80%, and 100%.</p>
+            <h2>{t("budget.categoryTitle")}</h2>
+            <p>{t("budget.categorySub")}</p>
 
             {catRows.length === 0 && (
-              <p className="budget-page__hint">No category limits yet.</p>
+              <p className="budget-page__hint">{t("transactions.empty")}</p>
             )}
 
             <ul className="budget-page__cat-edit">
@@ -217,23 +223,16 @@ const Budget = () => {
                 return (
                   <li key={`${row.category}-${idx}`}>
                     <div className="budget-page__cat-edit-row">
-                      <select
+                      <CategorySelect
                         value={row.category}
-                        onChange={(e) => {
+                        options={EXPENSE_CATEGORIES}
+                        compact
+                        onChange={(category) => {
                           const next = [...catRows];
-                          next[idx] = {
-                            ...next[idx],
-                            category: e.target.value,
-                          };
+                          next[idx] = { ...next[idx], category };
                           setCatRows(next);
                         }}
-                      >
-                        {EXPENSE_CATEGORIES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
+                      />
                       <input
                         type="number"
                         min="0"
@@ -287,25 +286,28 @@ const Budget = () => {
 
             <div className="budget-page__cat-actions">
               <button type="button" className="btn btn-ghost" onClick={addCatRow}>
-                Add category
+                {t("budget.addCategory")}
               </button>
               <button
                 className="btn btn-primary"
                 type="submit"
                 disabled={savingCats}
               >
-                {savingCats ? "Saving…" : "Save category budgets"}
+                {savingCats ? t("budget.savingCategories") : t("budget.saveCategories")}
               </button>
             </div>
           </form>
 
           {summary && summary.categoryBreakdown.length > 0 && (
             <section className="panel budget-page__cats">
-              <h2>Where it went</h2>
+              <h2>{t("budget.topCategories")}</h2>
               <ul>
                 {summary.categoryBreakdown.map((cat) => (
                   <li key={cat.name}>
-                    <span>{cat.name}</span>
+                    <span className="budget-page__cat-label">
+                      <CategoryIcon category={cat.name} />
+                      {cat.name}
+                    </span>
                     <strong>{formatINR(cat.value)}</strong>
                   </li>
                 ))}

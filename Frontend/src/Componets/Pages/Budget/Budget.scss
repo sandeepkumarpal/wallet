@@ -58,18 +58,33 @@
 
   &__cat-edit-row {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
     gap: 0.5rem;
     align-items: center;
 
-    select,
+    .category-select,
     input {
       width: 100%;
+      min-width: 0;
+    }
+
+    input {
       padding: 0.55rem 0.65rem;
       border-radius: 12px;
       border: 1px solid var(--line);
       background: var(--surface);
       color: var(--ink);
+    }
+  }
+
+  &__cat-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+
+    .category-icon {
+      color: var(--accent);
     }
   }
 
@@ -99,6 +114,8 @@
   &__cats li {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
     padding: 0.7rem 0;
     border-bottom: 1px solid var(--line);
   }
@@ -111,5 +128,9 @@
 @media (max-width: 560px) {
   .budget-page__cat-edit-row {
     grid-template-columns: 1fr;
+
+    .btn {
+      justify-self: start;
+    }
   }
 }

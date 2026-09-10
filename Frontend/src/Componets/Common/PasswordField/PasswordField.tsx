@@ -1,14 +1,18 @@
-import { useId, useState, type ChangeEventHandler } from "react";
+"use client";
+
+import {
+  useId,
+  useState,
+  forwardRef,
+  type InputHTMLAttributes,
+} from "react";
+import FieldError from "../FieldError/FieldError";
 import "./PasswordField.scss";
 
-interface PasswordFieldProps {
-  id?: string;
+interface PasswordFieldProps
+  extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;
-  value: string;
-  onChange: ChangeEventHandler<HTMLInputElement>;
-  autoComplete?: string;
-  required?: boolean;
-  minLength?: number;
+  error?: string;
 }
 
 const EyeIcon = ({ open }: { open: boolean }) =>
@@ -40,44 +44,54 @@ const EyeIcon = ({ open }: { open: boolean }) =>
     </svg>
   );
 
-const PasswordField = ({
-  id,
-  label,
-  value,
-  onChange,
-  autoComplete = "current-password",
-  required = true,
-  minLength,
-}: PasswordFieldProps) => {
-  const generatedId = useId();
-  const inputId = id || generatedId;
-  const [visible, setVisible] = useState(false);
+const PasswordField = forwardRef<HTMLInputElement, PasswordFieldProps>(
+  (
+    {
+      id,
+      label,
+      error,
+      autoComplete = "current-password",
+      className,
+      ...inputProps
+    },
+    ref
+  ) => {
+    const generatedId = useId();
+    const inputId = id || generatedId;
+    const [visible, setVisible] = useState(false);
 
-  return (
-    <div className="field password-field">
-      <label htmlFor={inputId}>{label}</label>
-      <div className="password-field__wrap">
-        <input
-          id={inputId}
-          type={visible ? "text" : "password"}
-          autoComplete={autoComplete}
-          value={value}
-          onChange={onChange}
-          required={required}
-          minLength={minLength}
-        />
-        <button
-          type="button"
-          className="password-field__toggle"
-          onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? "Hide password" : "Show password"}
-          aria-pressed={visible}
-        >
-          <EyeIcon open={visible} />
-        </button>
+    return (
+      <div className="field password-field">
+        <label htmlFor={inputId}>{label}</label>
+        <div className="password-field__wrap">
+          <input
+            id={inputId}
+            ref={ref}
+            type={visible ? "text" : "password"}
+            autoComplete={autoComplete}
+            className={[error ? "is-invalid" : "", className || ""]
+              .filter(Boolean)
+              .join(" ")}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? `${inputId}-error` : undefined}
+            {...inputProps}
+          />
+          <button
+            type="button"
+            className="password-field__toggle"
+            onClick={() => setVisible((v) => !v)}
+            aria-label={visible ? "Hide password" : "Show password"}
+            aria-pressed={visible}
+          >
+            <EyeIcon open={visible} />
+          </button>
+        </div>
+        <FieldError id={`${inputId}-error`} message={error} />
       </div>
-    </div>
-  );
-};
+    );
+  }
+);
+
+PasswordField.displayName = "PasswordField";
 
 export default PasswordField;

@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from "react";
-import { useLocation, Navigate } from "react-router-dom";
+import { usePathname, useRouter } from "next/navigation";
 import Dashboard from "../Pages/Dashboard/Dashboard";
 import Transaction from "../Pages/Transactions/Transaction";
 import Budget from "../Pages/Budget/Budget";
@@ -20,7 +22,8 @@ const ALLOWED = new Set<string>(PAGES.map((p) => p.path));
  * create empty scroll space. Each page runs its own GSAP enter motion.
  */
 const PersistentPages = () => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     // Short pages would otherwise keep the previous tall-page scroll offset
@@ -33,8 +36,14 @@ const PersistentPages = () => {
     return () => cancelAnimationFrame(id);
   }, [pathname]);
 
+  useEffect(() => {
+    if (!ALLOWED.has(pathname)) {
+      router.replace("/dashboard");
+    }
+  }, [pathname, router]);
+
   if (!ALLOWED.has(pathname)) {
-    return <Navigate to="/dashboard" replace />;
+    return null;
   }
 
   return (
