@@ -120,7 +120,7 @@ const RecurringPanel = ({ onChanged }: Props) => {
             <button
               key={type}
               type="button"
-              className={`chip chip--with-icon ${form.expenseType === type ? "is-active" : ""}`}
+              className={`chip chip--with-icon chip--${type} ${form.expenseType === type ? "is-active" : ""}`}
               onClick={() =>
                 setForm({
                   ...form,

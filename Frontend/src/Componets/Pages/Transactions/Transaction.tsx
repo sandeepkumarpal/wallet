@@ -98,7 +98,7 @@ const TransactionFormFields = ({
           <button
             key={type}
             type="button"
-            className={`chip chip--with-icon ${expenseType === type ? "is-active" : ""}`}
+            className={`chip chip--with-icon chip--${type} ${expenseType === type ? "is-active" : ""}`}
             onClick={() => {
               setValue("expenseType", type, { shouldValidate: true });
               setValue(
@@ -225,13 +225,19 @@ const TransactionPage = () => {
   const [month, setMonth] = useState(currentMonthValue());
   const [filter, setFilter] = useState<"all" | ExpenseType>("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
+  const [debouncedMin, setDebouncedMin] = useState("");
+  const [debouncedMax, setDebouncedMax] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [appliedFrom, setAppliedFrom] = useState("");
+  const [appliedTo, setAppliedTo] = useState("");
   const [useRange, setUseRange] = useState(false);
+  const loadRequestRef = useRef(0);
   const [items, setItems] = useState<Transaction[]>(
     () => getCache<Transaction[]>(`tx:${currentMonthValue()}`) || []
   );
@@ -278,48 +284,130 @@ const TransactionPage = () => {
     targets: TX_TARGETS,
   });
 
-  const load = async (opts?: { silent?: boolean }) => {
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setDebouncedMin(minAmount.trim());
+      setDebouncedMax(maxAmount.trim());
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [search, minAmount, maxAmount]);
+
+  const load = async (opts?: {
+    silent?: boolean;
+    from?: string;
+    to?: string;
+  }) => {
     const silent = opts?.silent ?? !!getCache(`tx:${month}`);
+    const requestId = ++loadRequestRef.current;
     if (!silent) setLoading(true);
     setError("");
     try {
+      const from = opts?.from ?? appliedFrom;
+      const to = opts?.to ?? appliedTo;
       const params: Record<string, string> = {};
-      if (useRange && (dateFrom || dateTo)) {
-        if (dateFrom) params.from = dateFrom;
-        if (dateTo) params.to = dateTo;
+
+      if (from && to) {
+        params.from = from;
+        params.to = to;
       } else {
         params.month = month;
       }
-      if (search.trim()) params.q = search.trim();
+      if (debouncedSearch) params.q = debouncedSearch;
       if (categoryFilter) params.category = categoryFilter;
       if (paymentFilter) params.paymentMethod = paymentFilter;
-      if (minAmount) params.minAmount = minAmount;
-      if (maxAmount) params.maxAmount = maxAmount;
+      if (debouncedMin) params.minAmount = debouncedMin;
+      if (debouncedMax) params.maxAmount = debouncedMax;
 
       const { data } = await api.get(API_URLS.TRANSACTIONS, { params });
+      if (requestId !== loadRequestRef.current) return;
+
       const next = data.transactions || [];
       setItems(next);
-      if (!useRange && !search && !categoryFilter && !paymentFilter && !minAmount && !maxAmount) {
+      const usingRange = Boolean(from && to);
+      if (
+        !usingRange &&
+        !debouncedSearch &&
+        !categoryFilter &&
+        !paymentFilter &&
+        !debouncedMin &&
+        !debouncedMax
+      ) {
         setCache(`tx:${month}`, next);
       }
     } catch (err) {
+      if (requestId !== loadRequestRef.current) return;
       setError(getErrorMessage(err, "Could not load transactions"));
     } finally {
-      if (!silent) setLoading(false);
+      if (requestId === loadRequestRef.current && !silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     if (tab === "recurring") return;
+    const hasLiveFilters = Boolean(
+      debouncedSearch ||
+        categoryFilter ||
+        paymentFilter ||
+        debouncedMin ||
+        debouncedMax ||
+        (appliedFrom && appliedTo)
+    );
     const cached = getCache<Transaction[]>(`tx:${month}`);
-    if (cached && !useRange && !search && !categoryFilter) {
+    if (cached && !hasLiveFilters) {
       setItems(cached);
       setLoading(false);
       void load({ silent: true });
     } else {
       void load();
     }
-  }, [month, useRange, dateFrom, dateTo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional live-filter deps
+  }, [
+    month,
+    debouncedSearch,
+    categoryFilter,
+    paymentFilter,
+    debouncedMin,
+    debouncedMax,
+    appliedFrom,
+    appliedTo,
+    tab,
+  ]);
+
+  const canApplyDateRange =
+    useRange &&
+    Boolean(dateFrom && dateTo) &&
+    (dateFrom !== appliedFrom || dateTo !== appliedTo);
+
+  const hasDateFilter = Boolean(
+    useRange && (dateFrom || dateTo || appliedFrom || appliedTo)
+  );
+
+  const applyDateRange = () => {
+    if (!dateFrom || !dateTo) return;
+    setAppliedFrom(dateFrom);
+    setAppliedTo(dateTo);
+  };
+
+  const clearDateFilter = () => {
+    setUseRange(false);
+    setDateFrom("");
+    setDateTo("");
+    setAppliedFrom("");
+    setAppliedTo("");
+  };
+
+  const toggleDateRange = (checked: boolean) => {
+    setUseRange(checked);
+    if (!checked) {
+      setDateFrom("");
+      setDateTo("");
+      setAppliedFrom("");
+      setAppliedTo("");
+    }
+  };
 
   const filteredItems = useMemo(() => {
     if (filter === "all") return items;
@@ -523,7 +611,7 @@ const TransactionPage = () => {
                   type="button"
                   role="tab"
                   aria-selected={filter === key}
-                  className={`chip chip--with-icon ${filter === key ? "is-active" : ""}`}
+                  className={`chip chip--with-icon ${key !== "all" ? `chip--${key}` : ""} ${filter === key ? "is-active" : ""}`}
                   onClick={() => setFilter(key)}
                 >
                   {icon ? <TransactionTypeIcon type={icon} size={15} /> : null}
@@ -553,104 +641,142 @@ const TransactionPage = () => {
           </div>
 
           <div className="transactions__filters">
-            <div className="field">
-              <label htmlFor="tx-search">Search</label>
-              <input
-                id="tx-search"
-                placeholder="Description, notes…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="tx-cat">Category</label>
-              <select
-                id="tx-cat"
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-              >
-                <option value="">All</option>
-                {allCategories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="tx-pay">Payment</label>
-              <select
-                id="tx-pay"
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-              >
-                <option value="">All</option>
-                {PAYMENT_METHODS.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="tx-min">Min ₹</label>
-              <input
-                id="tx-min"
-                type="number"
-                min="0"
-                value={minAmount}
-                onChange={(e) => setMinAmount(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="tx-max">Max ₹</label>
-              <input
-                id="tx-max"
-                type="number"
-                min="0"
-                value={maxAmount}
-                onChange={(e) => setMaxAmount(e.target.value)}
-              />
-            </div>
-            <div className="field transactions__range-toggle">
-              <label>
+            <div className="transactions__filter-fields">
+              <div className="field">
+                <label htmlFor="tx-search">Search</label>
                 <input
-                  type="checkbox"
-                  checked={useRange}
-                  onChange={(e) => setUseRange(e.target.checked)}
-                />{" "}
-                Custom date range
-              </label>
+                  id="tx-search"
+                  placeholder="Description, notes…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="tx-cat">Category</label>
+                <select
+                  id="tx-cat"
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                >
+                  <option value="">All</option>
+                  {allCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="tx-pay">Payment</label>
+                <select
+                  id="tx-pay"
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value)}
+                >
+                  <option value="">All</option>
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label htmlFor="tx-min">Min ₹</label>
+                <input
+                  id="tx-min"
+                  type="number"
+                  min="0"
+                  value={minAmount}
+                  onChange={(e) => setMinAmount(e.target.value)}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="tx-max">Max ₹</label>
+                <input
+                  id="tx-max"
+                  type="number"
+                  min="0"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(e.target.value)}
+                />
+              </div>
             </div>
-            {useRange && (
-              <>
-                <div className="field">
-                  <label htmlFor="tx-from">From</label>
-                  <input
-                    id="tx-from"
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="tx-to">To</label>
-                  <input
-                    id="tx-to"
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={() => void load()}
+
+            <div
+              className={`transactions__date-row ${useRange ? "is-open" : ""}`}
             >
-              Apply filters
-            </button>
+              <div className="field transactions__range-field">
+                <span className="transactions__field-label">Date range</span>
+                <label
+                  className={`transactions__range-chip ${useRange ? "is-on" : ""}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={useRange}
+                    onChange={(e) => toggleDateRange(e.target.checked)}
+                  />
+                  <span className="transactions__range-chip-ui" aria-hidden />
+                  <span className="transactions__range-chip-text">Custom</span>
+                </label>
+              </div>
+
+              {useRange ? (
+                <>
+                  <div className="field">
+                    <label htmlFor="tx-from">From</label>
+                    <input
+                      id="tx-from"
+                      type="date"
+                      value={dateFrom}
+                      max={dateTo || undefined}
+                      onChange={(e) => {
+                        setDateFrom(e.target.value);
+                        setAppliedFrom("");
+                        setAppliedTo("");
+                      }}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="tx-to">To</label>
+                    <input
+                      id="tx-to"
+                      type="date"
+                      value={dateTo}
+                      min={dateFrom || undefined}
+                      onChange={(e) => {
+                        setDateTo(e.target.value);
+                        setAppliedFrom("");
+                        setAppliedTo("");
+                      }}
+                    />
+                  </div>
+                  <div className="field transactions__apply-slot">
+                    <label aria-hidden="true">&nbsp;</label>
+                    <div className="transactions__date-actions">
+                      {canApplyDateRange ? (
+                        <button
+                          type="button"
+                          className="btn btn-primary transactions__apply"
+                          onClick={applyDateRange}
+                        >
+                          Apply
+                        </button>
+                      ) : null}
+                      {hasDateFilter ? (
+                        <button
+                          type="button"
+                          className="btn btn-ghost transactions__clear-dates"
+                          onClick={clearDateFilter}
+                        >
+                          Clear dates
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </div>
           </div>
 
           <div className="transactions__results" aria-busy={loading}>

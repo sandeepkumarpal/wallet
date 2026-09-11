@@ -64,6 +64,7 @@ const AppNav = () => {
           </nav>
           <div className="top-nav__user">
             <LanguageSwitcher compact className="top-nav__lang" />
+            <LanguageSwitcher icon className="top-nav__lang-icon" />
             <NavActions />
             <span className="top-nav__name">
               {user?.fullName?.split(" ")[0] || t("common.account")}
@@ -74,6 +75,29 @@ const AppNav = () => {
               onClick={() => setConfirmLogout(true)}
             >
               {t("common.logOut")}
+            </button>
+            <button
+              type="button"
+              className="nav-icon-btn top-nav__logout-icon"
+              aria-label={t("common.logOut")}
+              title={t("common.logOut")}
+              onClick={() => setConfirmLogout(true)}
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden>
+                <path
+                  d="M10 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h3"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="M15 8l4 4-4 4M10 12h9"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </div>
         </div>

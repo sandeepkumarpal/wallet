@@ -31,6 +31,42 @@
       min-width: 7.5rem;
     }
   }
+
+  &.is-icon {
+    position: relative;
+    min-width: 2.4rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    flex-shrink: 0;
+
+    svg {
+      pointer-events: none;
+    }
+
+    &:hover {
+      border-color: var(--accent);
+      color: var(--accent-2);
+    }
+
+    .lang-switcher__select {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      cursor: pointer;
+    }
+  }
 }
 
 .auth-page__card-top .lang-switcher {

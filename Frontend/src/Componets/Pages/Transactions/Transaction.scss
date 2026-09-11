@@ -36,26 +36,167 @@
   }
 
   &__filters {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.65rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     margin-bottom: 1rem;
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--line);
+  }
+
+  &__filter-fields,
+  &__date-row {
+    display: grid;
+    grid-template-columns:
+      minmax(9.5rem, 1.35fr)
+      minmax(8rem, 1fr)
+      minmax(8rem, 1fr)
+      minmax(5.5rem, 0.7fr)
+      minmax(5.5rem, 0.7fr);
+    gap: 0.65rem 0.75rem;
     align-items: end;
 
-    .btn {
-      height: fit-content;
+    .field {
+      margin-bottom: 0;
+      min-width: 0;
     }
   }
 
-  &__range-toggle label {
-    display: flex;
+  &__date-row.is-open {
+    .transactions__apply-slot {
+      grid-column: 4 / -1;
+    }
+  }
+
+  &__field-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  &__range-field {
+    .transactions__range-chip {
+      width: 100%;
+      min-height: 2.85rem;
+      justify-content: flex-start;
+      box-sizing: border-box;
+    }
+  }
+
+  &__range-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--input-bg, var(--surface));
     color: var(--muted);
     font-size: 0.9rem;
-    padding-top: 1.4rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      color 0.15s ease,
+      box-shadow 0.15s ease;
+
+    input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      pointer-events: none;
+    }
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+      color: var(--ink);
+    }
+
+    &:has(input:focus-visible) {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    &.is-on {
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+      color: var(--ink);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+  }
+
+  &__range-chip-ui {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+    border: 1.5px solid color-mix(in srgb, var(--muted) 55%, var(--line));
+    border-radius: 0.3rem;
+    background: var(--surface);
+    position: relative;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 0.12rem;
+      background: var(--accent);
+      opacity: 0;
+      transform: scale(0.6);
+      transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+    }
+
+    .transactions__range-chip.is-on & {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+
+      &::after {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  }
+
+  &__apply-slot {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  &__date-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+  }
+
+  &__apply,
+  &__clear-dates {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    padding: 0.7rem 0.9rem;
+    animation: tx-date-in 0.18s ease;
+  }
+
+  &__clear-dates {
+    color: var(--danger);
+    border-color: color-mix(in srgb, var(--danger) 28%, var(--line));
+
+    &:hover {
+      background: color-mix(in srgb, var(--danger) 8%, transparent);
+    }
   }
 
   &__form h2 {
@@ -132,6 +273,16 @@
     color: var(--accent-2);
   }
 
+  .chip.chip--expense.is-active .chip__count {
+    background: color-mix(in srgb, var(--expense) 18%, transparent);
+    color: var(--expense);
+  }
+
+  .chip.chip--income.is-active .chip__count {
+    background: color-mix(in srgb, var(--income) 18%, transparent);
+    color: var(--income);
+  }
+
   .tx-list {
     list-style: none;
     margin: 0;
@@ -200,6 +351,17 @@
   }
 }
 
+@keyframes tx-date-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 719px) {
   .transactions {
     .page-head {
@@ -262,18 +424,33 @@
       }
     }
 
-    &__filters {
+    &__filter-fields,
+    &__date-row {
       grid-template-columns: 1fr 1fr;
 
       .field:first-child,
-      .transactions__range-toggle,
-      .btn {
+      .transactions__range-field {
         grid-column: 1 / -1;
       }
     }
 
-    &__range-toggle label {
-      padding-top: 0.25rem;
+    &__date-row.is-open {
+      .transactions__apply-slot {
+        grid-column: 1 / -1;
+      }
+    }
+
+    &__date-actions {
+      width: 100%;
+    }
+
+    &__apply,
+    &__clear-dates {
+      flex: 1;
+    }
+
+    &__range-chip {
+      border-radius: 12px;
     }
 
     .tx-list li {

@@ -61,7 +61,7 @@
   &__user {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.35rem;
 
     .top-nav__name {
       display: none;
@@ -78,6 +78,15 @@
 
     .top-nav__lang {
       display: none;
+    }
+
+    .top-nav__lang-icon {
+      display: inline-flex;
+    }
+
+    .top-nav__logout-icon {
+      display: inline-grid;
+      color: var(--danger);
     }
   }
 }
@@ -270,10 +279,19 @@
       display: flex;
     }
 
-    &__user .top-nav__name,
-    &__user .top-nav__logout,
-    &__user .top-nav__lang {
-      display: inline-flex;
+    &__user {
+      gap: 0.5rem;
+
+      .top-nav__name,
+      .top-nav__logout,
+      .top-nav__lang {
+        display: inline-flex;
+      }
+
+      .top-nav__lang-icon,
+      .top-nav__logout-icon {
+        display: none;
+      }
     }
   }
 

@@ -13,7 +13,7 @@
   --warn: #c45c26;
   --danger: #b93737;
   --income: #1a7a62;
-  --expense: #c45c26;
+  --expense: #b93737;
   --shadow: 0 12px 40px rgba(18, 36, 31, 0.08);
   --radius: 18px;
   --nav-h: 64px;
@@ -48,7 +48,7 @@
   --warn: #e08a4f;
   --danger: #f07171;
   --income: #5fd4ae;
-  --expense: #f0a06a;
+  --expense: #f07171;
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   --body-gradient-a: rgba(61, 186, 150, 0.12);
   --body-gradient-b: rgba(224, 138, 79, 0.08);
@@ -415,6 +415,18 @@ p {
   background: var(--accent-soft);
   color: var(--accent-2);
   border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.chip.chip--expense.is-active {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.chip.chip--income.is-active {
+  background: color-mix(in srgb, var(--income) 14%, transparent);
+  color: var(--income);
+  border-color: color-mix(in srgb, var(--income) 40%, transparent);
 }
 
 [data-theme="dark"] .btn-ghost {

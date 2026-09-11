@@ -250,7 +250,7 @@ const Budget = () => {
                       />
                       <button
                         type="button"
-                        className="btn btn-ghost"
+                        className="btn btn-danger"
                         onClick={() =>
                           setCatRows(catRows.filter((_, i) => i !== idx))
                         }
