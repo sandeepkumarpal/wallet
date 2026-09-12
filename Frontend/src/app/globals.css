@@ -86,6 +86,50 @@ a {
   text-decoration: none;
 }
 
+a[href],
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="tab"]:not([aria-disabled="true"]),
+[role="menuitem"]:not([aria-disabled="true"]),
+[role="option"]:not([aria-disabled="true"]),
+[role="link"],
+[role="switch"],
+[role="checkbox"],
+[role="radio"],
+summary,
+label[for],
+select:not(:disabled),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled),
+input[type="submit"]:not(:disabled),
+input[type="button"]:not(:disabled),
+input[type="reset"]:not(:disabled),
+.chip,
+.nav-icon-btn,
+.bottom-nav__item,
+.top-nav__brand,
+.top-nav__links a,
+.landing-nav__icon-btn,
+.lang-switcher.is-icon,
+.nav-notify__list li,
+.store-badge:not(:disabled),
+.recharts-sector,
+.recharts-pie-sector,
+.recharts-legend-item,
+.recharts-area-dot,
+.recharts-dot {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"],
+input:disabled,
+select:disabled,
+.store-badge:disabled {
+  cursor: not-allowed;
+}
+
 button,
 input,
 select,
@@ -301,6 +345,14 @@ p {
 .field input[type="time"],
 .field input[type="datetime-local"] {
   color-scheme: inherit;
+  cursor: pointer;
+}
+
+.field input[type="date"]::-webkit-calendar-picker-indicator,
+.field input[type="month"]::-webkit-calendar-picker-indicator,
+.field input[type="time"]::-webkit-calendar-picker-indicator,
+.field input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
 }
 
 .field select {

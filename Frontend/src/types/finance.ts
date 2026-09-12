@@ -103,10 +103,32 @@ export const currentMonthValue = () => {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
 
-export const monthLabel = (month: string) => {
+export const todayValue = () => {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+};
+
+export const monthLabel = (month: string, locale = "en-IN") => {
   const [y, m] = month.split("-").map(Number);
-  return new Date(y, m - 1, 1).toLocaleString("en-IN", {
+  return new Date(y, m - 1, 1).toLocaleString(locale, {
     month: "long",
     year: "numeric",
   });
 };
+
+export const appLocale = (lang?: string) => {
+  const code = (lang || "en").split("-")[0];
+  const map: Record<string, string> = {
+    en: "en-IN",
+    hi: "hi-IN",
+    fr: "fr-FR",
+    de: "de-DE",
+    es: "es-ES",
+  };
+  return map[code] || "en-IN";
+};
+
+export const translateCategory = (
+  name: string,
+  t: (key: string, opts?: { defaultValue?: string }) => string
+) => t(`categories.${name}`, { defaultValue: name });

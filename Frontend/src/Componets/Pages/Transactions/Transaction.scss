@@ -190,6 +190,11 @@
     animation: tx-date-in 0.18s ease;
   }
 
+  &__date-error {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
   &__clear-dates {
     color: var(--danger);
     border-color: color-mix(in srgb, var(--danger) 28%, var(--line));

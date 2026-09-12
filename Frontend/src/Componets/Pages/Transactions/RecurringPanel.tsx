@@ -19,6 +19,7 @@ import {
   IncomeIcon,
   TransactionTypeIcon,
 } from "../../Common/Icons/TransactionIcons";
+import "../../Common/PageSkeleton/PageSkeleton.scss";
 
 const empty = {
   amount: "",
@@ -207,7 +208,19 @@ const RecurringPanel = ({ onChanged }: Props) => {
       <section className="panel">
         <h2>Your recurring</h2>
         {loading ? (
-          <p className="recurring-panel__hint">Loading…</p>
+          <div className="page-skel page-skel--transactions" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="page-skel__tx-row">
+                <div className="page-skel__tx-main">
+                  <div className="skel-block skel-shine page-skel__tx-title" />
+                  <div className="skel-block skel-shine page-skel__tx-meta" />
+                </div>
+                <div className="page-skel__tx-side">
+                  <div className="skel-block skel-shine page-skel__tx-amount" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : items.length === 0 ? (
           <EmptyState
             title="No record found"

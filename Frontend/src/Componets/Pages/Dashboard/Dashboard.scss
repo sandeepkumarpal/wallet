@@ -92,6 +92,74 @@
   &__pie-wrap {
     width: 100%;
     min-height: 220px;
+
+    .recharts-wrapper,
+    .recharts-surface,
+    .recharts-sector,
+    .recharts-pie-sector,
+    .recharts-layer,
+    path,
+    .recharts-legend-item {
+      outline: none !important;
+    }
+
+    .recharts-sector:focus,
+    .recharts-pie-sector:focus,
+    path:focus {
+      outline: none !important;
+    }
+  }
+
+  &__tooltip {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 7.5rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: 0 10px 28px rgba(18, 36, 31, 0.12);
+    pointer-events: none;
+  }
+
+  &__tooltip-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  &__tooltip-copy {
+    display: grid;
+    gap: 0.1rem;
+
+    strong {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+
+    em {
+      font-style: normal;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ink);
+      letter-spacing: -0.02em;
+    }
+  }
+
+  &__chart-wrap {
+    width: 100%;
+    min-height: 240px;
+
+    .recharts-wrapper,
+    .recharts-surface,
+    path {
+      outline: none !important;
+    }
   }
 
   &__swatch {
@@ -203,11 +271,6 @@
   &__grid {
     display: grid;
     gap: 1rem;
-  }
-
-  &__chart-wrap {
-    width: 100%;
-    min-height: 240px;
   }
 
   &__cats ul {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
-import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { SUPPORTED_LANGUAGES, persistLanguage } from "@/i18n/config";
 import "./LanguageSwitcher.scss";
 
 type Props = {
@@ -47,7 +47,8 @@ const LanguageSwitcher = ({
         aria-label={t("common.language")}
         value={current}
         onChange={(e) => {
-          void i18n.changeLanguage(e.target.value);
+          const next = persistLanguage(e.target.value);
+          void i18n.changeLanguage(next);
         }}
       >
         {SUPPORTED_LANGUAGES.map((lang) => (

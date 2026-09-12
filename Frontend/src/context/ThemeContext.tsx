@@ -7,8 +7,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  THEME_COOKIE,
+  THEME_STORAGE_KEY,
+  normalizeTheme,
+  type ThemeMode,
+} from "./themeConfig";
 
-export type ThemeMode = "light" | "dark";
+export type { ThemeMode };
 
 type ThemeContextValue = {
   theme: ThemeMode;
@@ -17,27 +23,42 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-const STORAGE_KEY = "wallet_theme";
 
-const getInitial = (): ThemeMode => {
-  if (typeof window === "undefined") return "light";
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved === "dark" || saved === "light") return saved;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+const persistTheme = (mode: ThemeMode) => {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(THEME_STORAGE_KEY, mode);
+  document.cookie = `${THEME_COOKIE}=${mode};path=/;max-age=31536000;samesite=lax`;
+  document.documentElement.setAttribute("data-theme", mode);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) {
+    meta.setAttribute("content", mode === "dark" ? "#0f1714" : "#1a7a62");
+  }
 };
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setThemeState] = useState<ThemeMode>(getInitial);
+export const ThemeProvider = ({
+  children,
+  initialTheme = "light",
+}: {
+  children: ReactNode;
+  initialTheme?: ThemeMode;
+}) => {
+  const [theme, setThemeState] = useState<ThemeMode>(() =>
+    normalizeTheme(initialTheme)
+  );
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(STORAGE_KEY, theme);
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute("content", theme === "dark" ? "#0f1714" : "#1a7a62");
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "dark" || saved === "light") {
+      setThemeState(saved);
+      persistTheme(saved);
+      return;
     }
+    persistTheme(theme);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- migrate storage once on mount
+  }, []);
+
+  useEffect(() => {
+    persistTheme(theme);
   }, [theme]);
 
   const setTheme = (mode: ThemeMode) => setThemeState(mode);

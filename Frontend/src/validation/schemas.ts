@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import {
   EXPENSE_CATEGORIES,
   INCOME_CATEGORIES,
+  todayValue,
 } from "../types/finance";
 
 export const createStrongPasswordSchema = (t: TFunction) =>
@@ -92,7 +93,11 @@ export const createTransactionSchema = (t: TFunction) =>
     date: yup
       .string()
       .required(t("validation.dateRequired"))
-      .matches(/^\d{4}-\d{2}-\d{2}$/, t("validation.dateInvalid")),
+      .matches(/^\d{4}-\d{2}-\d{2}$/, t("validation.dateInvalid"))
+      .test("not-future", t("validation.dateNotFuture"), (value) => {
+        if (!value) return false;
+        return value <= todayValue();
+      }),
     description: yup
       .string()
       .trim()

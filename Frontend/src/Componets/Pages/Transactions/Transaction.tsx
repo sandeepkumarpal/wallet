@@ -19,6 +19,8 @@ import {
   currentMonthValue,
   formatINR,
   monthLabel,
+  todayValue,
+  appLocale,
   type ExpenseType,
   type Transaction,
 } from "../../../types/finance";
@@ -52,7 +54,7 @@ const TX_TARGETS = [".transactions__tabs"] as const;
 const emptyForm: TransactionFormValues = {
   amount: "",
   description: "",
-  date: new Date().toISOString().slice(0, 10),
+  date: todayValue(),
   category: "Food",
   paymentMethod: "UPI",
   expenseType: "expense",
@@ -144,6 +146,7 @@ const TransactionFormFields = ({
           <input
             id={`${idPrefix}-date`}
             type="date"
+            max={todayValue()}
             className={errors.date ? "is-invalid" : undefined}
             aria-invalid={Boolean(errors.date)}
             {...register("date")}
@@ -220,6 +223,7 @@ const TransactionFormFields = ({
 
 const TransactionPage = () => {
   const { t, i18n } = useTranslation();
+  const locale = appLocale(i18n.resolvedLanguage || i18n.language);
   const rootRef = useRef<HTMLDivElement>(null);
   const [tab, setTab] = useState<"list" | "add" | "recurring">("list");
   const [month, setMonth] = useState(currentMonthValue());
@@ -234,6 +238,7 @@ const TransactionPage = () => {
   const [debouncedMax, setDebouncedMax] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [dateRangeError, setDateRangeError] = useState("");
   const [appliedFrom, setAppliedFrom] = useState("");
   const [appliedTo, setAppliedTo] = useState("");
   const [useRange, setUseRange] = useState(false);
@@ -379,14 +384,44 @@ const TransactionPage = () => {
   const canApplyDateRange =
     useRange &&
     Boolean(dateFrom && dateTo) &&
+    dateFrom <= dateTo &&
     (dateFrom !== appliedFrom || dateTo !== appliedTo);
 
   const hasDateFilter = Boolean(
     useRange && (dateFrom || dateTo || appliedFrom || appliedTo)
   );
 
+  const onDateFromChange = (value: string) => {
+    setDateFrom(value);
+    setAppliedFrom("");
+    setAppliedTo("");
+    if (value && dateTo && value > dateTo) {
+      setDateTo(value);
+      setDateRangeError("From date can’t be after To date");
+      return;
+    }
+    setDateRangeError("");
+  };
+
+  const onDateToChange = (value: string) => {
+    setDateTo(value);
+    setAppliedFrom("");
+    setAppliedTo("");
+    if (value && dateFrom && value < dateFrom) {
+      setDateFrom(value);
+      setDateRangeError("To date can’t be before From date");
+      return;
+    }
+    setDateRangeError("");
+  };
+
   const applyDateRange = () => {
     if (!dateFrom || !dateTo) return;
+    if (dateFrom > dateTo) {
+      setDateRangeError("From date can’t be after To date");
+      return;
+    }
+    setDateRangeError("");
     setAppliedFrom(dateFrom);
     setAppliedTo(dateTo);
   };
@@ -397,6 +432,7 @@ const TransactionPage = () => {
     setDateTo("");
     setAppliedFrom("");
     setAppliedTo("");
+    setDateRangeError("");
   };
 
   const toggleDateRange = (checked: boolean) => {
@@ -406,6 +442,7 @@ const TransactionPage = () => {
       setDateTo("");
       setAppliedFrom("");
       setAppliedTo("");
+      setDateRangeError("");
     }
   };
 
@@ -424,7 +461,7 @@ const TransactionPage = () => {
   );
 
   const allCategories = useMemo(
-    () => [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES],
+    () => [...new Set([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES])],
     []
   );
 
@@ -545,10 +582,10 @@ const TransactionPage = () => {
       <div className="page-head">
         <div>
           <h1>{t("transactions.title")}</h1>
-          <p>{monthLabel(month)}</p>
+          <p>{monthLabel(month, locale)}</p>
         </div>
         <div className="field" style={{ marginBottom: 0, minWidth: 180 }}>
-          <label htmlFor="tx-month">Month</label>
+          <label htmlFor="tx-month">{t("transactions.month")}</label>
           <input
             id="tx-month"
             type="month"
@@ -730,11 +767,8 @@ const TransactionPage = () => {
                       type="date"
                       value={dateFrom}
                       max={dateTo || undefined}
-                      onChange={(e) => {
-                        setDateFrom(e.target.value);
-                        setAppliedFrom("");
-                        setAppliedTo("");
-                      }}
+                      aria-invalid={Boolean(dateRangeError)}
+                      onChange={(e) => onDateFromChange(e.target.value)}
                     />
                   </div>
                   <div className="field">
@@ -744,11 +778,8 @@ const TransactionPage = () => {
                       type="date"
                       value={dateTo}
                       min={dateFrom || undefined}
-                      onChange={(e) => {
-                        setDateTo(e.target.value);
-                        setAppliedFrom("");
-                        setAppliedTo("");
-                      }}
+                      aria-invalid={Boolean(dateRangeError)}
+                      onChange={(e) => onDateToChange(e.target.value)}
                     />
                   </div>
                   <div className="field transactions__apply-slot">
@@ -774,6 +805,11 @@ const TransactionPage = () => {
                       ) : null}
                     </div>
                   </div>
+                  {dateRangeError ? (
+                    <p className="field-error transactions__date-error" role="alert">
+                      {dateRangeError}
+                    </p>
+                  ) : null}
                 </>
               ) : null}
             </div>

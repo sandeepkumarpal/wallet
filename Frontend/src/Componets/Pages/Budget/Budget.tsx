@@ -6,6 +6,7 @@ import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
 import {
   EXPENSE_CATEGORIES,
+  appLocale,
   currentMonthValue,
   formatINR,
   monthLabel,
@@ -28,7 +29,8 @@ const BUDGET_TARGETS = [
 ] as const;
 
 const Budget = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = appLocale(i18n.resolvedLanguage || i18n.language);
   const rootRef = useRef<HTMLDivElement>(null);
   const { refreshUser } = useAuth();
   const [month] = useState(currentMonthValue());
@@ -157,7 +159,11 @@ const Budget = () => {
       <div className="page-head">
         <div>
           <h1>{t("budget.title")}</h1>
-          <p>Plan for {monthLabel(month)}</p>
+          <p>
+            {t("budget.planFor", {
+              month: monthLabel(month, locale),
+            })}
+          </p>
         </div>
       </div>
 

@@ -4,6 +4,32 @@
   gap: 1rem;
 }
 
+.page-skel-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0 1rem;
+}
+
+.page-skel__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.page-skel__head-title {
+  width: min(12rem, 55%);
+  height: 1.55rem;
+  border-radius: 10px;
+}
+
+.page-skel__head-sub {
+  width: min(18rem, 75%);
+  height: 0.8rem;
+  border-radius: 8px;
+}
+
 .skel-block,
 .skel-shine {
   position: relative;

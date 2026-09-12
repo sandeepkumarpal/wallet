@@ -10,19 +10,23 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
+  Sector,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
+import type { PieSectorDataItem } from "recharts/types/polar/Pie";
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { usePathname } from "next/navigation";
 import { api, getErrorMessage } from "../../../utils/api";
 import { API_URLS } from "../../../utils/Apiurls";
 import {
+  appLocale,
   currentMonthValue,
   formatINR,
   monthLabel,
+  translateCategory,
   type MonthlySummary,
 } from "../../../types/finance";
 import { useAuth } from "../../../context/AuthContext";
@@ -46,6 +50,78 @@ const PIE_COLORS = [
   "#3d7ea6",
 ];
 
+type TipPayload = {
+  name?: string;
+  value?: number;
+  color?: string;
+  dataKey?: string | number;
+  payload?: { name?: string; value?: number; fill?: string; day?: number };
+};
+
+const ChartTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: TipPayload[];
+  label?: string | number;
+}) => {
+  const { t } = useTranslation();
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  // Area chart only: dataKey is "expense" and points have a day.
+  const isDailySpend =
+    item.dataKey === "expense" &&
+    (typeof label === "number" || item.payload?.day != null);
+  const rawName = item.name ?? item.payload?.name ?? label;
+  const name = isDailySpend
+    ? t("dashboard.dayLabel", { day: label ?? item.payload?.day ?? "" })
+    : translateCategory(String(rawName ?? ""), t);
+  const value = Number(item.value ?? item.payload?.value ?? 0);
+  const color = item.color ?? item.payload?.fill ?? "var(--accent)";
+
+  return (
+    <div className="dashboard__tooltip">
+      <span className="dashboard__tooltip-dot" style={{ background: color }} />
+      <div className="dashboard__tooltip-copy">
+        {name != null && String(name).trim() !== "" ? (
+          <strong>{String(name)}</strong>
+        ) : null}
+        <em>{formatINR(value)}</em>
+      </div>
+    </div>
+  );
+};
+
+const renderActivePieShape = (props: PieSectorDataItem) => {
+  const {
+    cx = 0,
+    cy = 0,
+    innerRadius = 0,
+    outerRadius = 0,
+    startAngle,
+    endAngle,
+    fill,
+  } = props;
+
+  return (
+    <g style={{ outline: "none" }}>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={Number(outerRadius) + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        stroke="none"
+        style={{ outline: "none" }}
+      />
+    </g>
+  );
+};
+
 const daysLeftInMonth = (month: string) => {
   const [y, m] = month.split("-").map(Number);
   const end = new Date(y, m, 0);
@@ -57,7 +133,8 @@ const daysLeftInMonth = (month: string) => {
 };
 
 const Dashboard = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = appLocale(i18n.resolvedLanguage || i18n.language);
   const { user } = useAuth();
   const pathname = usePathname();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -95,7 +172,7 @@ const Dashboard = () => {
         apply(data);
       } catch (err) {
         if (!active) return;
-        setError(getErrorMessage(err, "Could not load summary"));
+        setError(getErrorMessage(err, t("dashboard.loadFailed")));
         setLoading(false);
       }
     };
@@ -125,7 +202,7 @@ const Dashboard = () => {
       active = false;
       unsub();
     };
-  }, [month, pathname]);
+  }, [month, pathname, t]);
 
   const budgetProgress = useMemo(() => {
     if (!summary || !summary.monthlyBudget) return 0;
@@ -179,27 +256,34 @@ const Dashboard = () => {
   const typePieData = useMemo(() => {
     if (!summary) return [];
     return [
-      { name: "Expense", value: summary.expense },
-      { name: "Income", value: summary.income },
+      { key: "expense", name: t("dashboard.expense"), value: summary.expense },
+      { key: "income", name: t("dashboard.income"), value: summary.income },
     ].filter((d) => d.value > 0);
-  }, [summary]);
+  }, [summary, t]);
 
   const categoryPieData = useMemo(() => {
     if (!summary) return [];
-    return summary.categoryBreakdown.slice(0, 8);
-  }, [summary]);
+    return summary.categoryBreakdown.slice(0, 8).map((cat) => ({
+      ...cat,
+      label: translateCategory(cat.name, t),
+    }));
+  }, [summary, t]);
 
   return (
     <div className="dashboard" ref={rootRef}>
       <div className="page-head dashboard__head">
         <div>
-          <p className="dashboard__eyebrow">{monthLabel(month)}</p>
-          <h1>Hi, {user?.fullName?.split(" ")[0] || "there"}</h1>
-          <p>Your money this month, at a glance.</p>
+          <p className="dashboard__eyebrow">{monthLabel(month, locale)}</p>
+          <h1>
+            {t("dashboard.greeting", {
+              name: user?.fullName?.split(" ")[0] || t("dashboard.greetingFallback"),
+            })}
+          </h1>
+          <p>{t("dashboard.subtitle")}</p>
         </div>
         <div className="dashboard__head-actions">
           <div className="field dashboard__month-field">
-            <label htmlFor="month">Month</label>
+            <label htmlFor="month">{t("dashboard.month")}</label>
             <input
               id="month"
               type="month"
@@ -208,7 +292,7 @@ const Dashboard = () => {
             />
           </div>
           <Link href="/transactions" className="btn btn-primary dashboard__add">
-            Add transaction
+            {t("dashboard.addTransaction")}
           </Link>
         </div>
       </div>
@@ -221,69 +305,77 @@ const Dashboard = () => {
         <div className={loading ? "dashboard__content is-refreshing" : "dashboard__content"}>
           {summary.monthlyBudget > 0 && summary.remaining < 0 && (
             <div className="alert alert-error dashboard__warn">
-              You are {formatINR(Math.abs(summary.remaining))} over budget this
-              month.
+              {t("dashboard.overBudget", {
+                amount: formatINR(Math.abs(summary.remaining)),
+              })}
             </div>
           )}
 
           {summary.monthlyBudget === 0 && (
             <div className="dashboard__nudge panel">
               <div>
-                <h2>Set this month’s budget</h2>
-                <p>Track what’s left after everyday spending.</p>
+                <h2>{t("dashboard.setMonthBudget")}</h2>
+                <p>{t("dashboard.setMonthBudgetSub")}</p>
               </div>
               <Link href="/budget" className="btn btn-primary dashboard__add">
-                Set budget
+                {t("dashboard.setBudget")}
               </Link>
             </div>
           )}
 
           <div className="stat-grid">
             <div className="stat-card stat-card--accent">
-              <span>Left in budget</span>
+              <span>{t("dashboard.leftInBudget")}</span>
               <strong>{formatINR(summary.remaining)}</strong>
               <small>
-                {daysLeftInMonth(month)} day
-                {daysLeftInMonth(month) === 1 ? "" : "s"} left
+                {t("dashboard.daysLeft", { count: daysLeftInMonth(month) })}
               </small>
             </div>
             <div className="stat-card">
-              <span>Spent</span>
+              <span>{t("dashboard.spent")}</span>
               <strong className="is-expense">{formatINR(summary.expense)}</strong>
               {spendDelta ? (
                 <small className={spendDelta.diff > 0 ? "is-expense" : "is-income"}>
-                  {spendDelta.diff > 0 ? "▲" : "▼"} {Math.abs(spendDelta.pct)}% vs
-                  last month
+                  {spendDelta.diff > 0 ? "▲" : "▼"}{" "}
+                  {t("dashboard.vsLastMonthChange", {
+                    pct: Math.abs(spendDelta.pct),
+                  })}
                 </small>
               ) : (
-                <small>vs last month —</small>
+                <small>{t("dashboard.vsLastMonth")} —</small>
               )}
             </div>
             <div className="stat-card">
-              <span>Income</span>
+              <span>{t("dashboard.income")}</span>
               <strong className="is-income">{formatINR(summary.income)}</strong>
-              <small>Last month {formatINR(summary.prevIncome)}</small>
+              <small>
+                {t("dashboard.lastMonth", {
+                  amount: formatINR(summary.prevIncome),
+                })}
+              </small>
             </div>
             <div className="stat-card">
-              <span>Net</span>
+              <span>{t("dashboard.net")}</span>
               <strong className={summary.balance >= 0 ? "is-income" : "is-expense"}>
                 {formatINR(summary.balance)}
               </strong>
-              <small>Income − expenses</small>
+              <small>{t("dashboard.incomeMinusExpense")}</small>
             </div>
           </div>
 
           <section className="dashboard__budget panel">
             <div className="dashboard__budget-top">
               <div>
-                <h2>Budget pace</h2>
+                <h2>{t("dashboard.budgetPace")}</h2>
                 <p>
-                  {formatINR(summary.expense)} of{" "}
-                  {formatINR(summary.monthlyBudget)}
+                  {t("dashboard.ofBudget", {
+                    spent: formatINR(summary.expense),
+                    budget: formatINR(summary.monthlyBudget),
+                  })}
                 </p>
               </div>
               <Link href="/budget" className="btn btn-ghost dashboard__ghost">
-                Adjust
+                {t("dashboard.adjust")}
               </Link>
             </div>
             <div
@@ -296,13 +388,18 @@ const Dashboard = () => {
             <div className="dashboard__budget-meta">
               <small>
                 {summary.monthlyBudget === 0
-                  ? "No budget set yet."
-                  : `${budgetProgress}% used`}
+                  ? t("dashboard.noBudgetYet")
+                  : t("dashboard.percentUsed", { pct: budgetProgress })}
               </small>
               {dailyPace && summary.monthlyBudget > 0 && (
                 <small>
-                  {dailyPace.ahead ? "On pace" : "Above pace"} · ~{" "}
-                  {formatINR(dailyPace.leftoverPerDay)}/day left
+                  {dailyPace.ahead
+                    ? t("dashboard.onPace")
+                    : t("dashboard.abovePace")}{" "}
+                  ·{" "}
+                  {t("dashboard.pacePerDay", {
+                    amount: formatINR(dailyPace.leftoverPerDay),
+                  })}
                 </small>
               )}
             </div>
@@ -311,8 +408,8 @@ const Dashboard = () => {
           <div className="dashboard__grid">
             <section className="panel dashboard__chart">
               <div className="dashboard__budget-top">
-                <h2>Daily spending</h2>
-                <span className="dashboard__chip">This month</span>
+                <h2>{t("dashboard.dailySpending")}</h2>
+                <span className="dashboard__chip">{t("dashboard.thisMonth")}</span>
               </div>
               <div className="dashboard__chart-wrap">
                 {chartsReady ? (
@@ -356,15 +453,8 @@ const Dashboard = () => {
                       }
                     />
                     <Tooltip
-                      formatter={(value) => formatINR(Number(value ?? 0))}
-                      labelFormatter={(label) => `Day ${label}`}
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid var(--line)",
-                        background: "var(--surface)",
-                        color: "var(--ink)",
-                      }}
-                      labelStyle={{ color: "var(--muted)" }}
+                      content={<ChartTooltip />}
+                      cursor={{ stroke: "var(--accent)", strokeWidth: 1, strokeOpacity: 0.35 }}
                     />
                     <Area
                       type="monotone"
@@ -373,6 +463,12 @@ const Dashboard = () => {
                       fill="url(#spend)"
                       strokeWidth={2}
                       isAnimationActive={false}
+                      activeDot={{
+                        r: 5,
+                        stroke: "var(--surface)",
+                        strokeWidth: 2,
+                        fill: "var(--accent)",
+                      }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -385,7 +481,7 @@ const Dashboard = () => {
             <section className="panel dashboard__cats">
               <div className="dashboard__budget-top">
                 <h2>{t("dashboard.byCategory")}</h2>
-                <span className="dashboard__chip">Expenses</span>
+                <span className="dashboard__chip">{t("transactions.expenses")}</span>
               </div>
               {categoryPieData.length === 0 ? (
                 <EmptyState
@@ -406,30 +502,28 @@ const Dashboard = () => {
                         <Pie
                           data={categoryPieData}
                           dataKey="value"
-                          nameKey="name"
+                          nameKey="label"
                           cx="50%"
                           cy="50%"
                           innerRadius={52}
                           outerRadius={78}
                           paddingAngle={2}
+                          stroke="var(--surface)"
+                          strokeWidth={2}
                           isAnimationActive={false}
+                          activeShape={renderActivePieShape}
                         >
                           {categoryPieData.map((entry, index) => (
                             <Cell
                               key={entry.name}
                               fill={PIE_COLORS[index % PIE_COLORS.length]}
+                              stroke="var(--surface)"
+                              strokeWidth={2}
+                              style={{ outline: "none" }}
                             />
                           ))}
                         </Pie>
-                        <Tooltip
-                          formatter={(value) => formatINR(Number(value ?? 0))}
-                          contentStyle={{
-                            borderRadius: 12,
-                            border: "1px solid var(--line)",
-                            background: "var(--surface)",
-                            color: "var(--ink)",
-                          }}
-                        />
+                        <Tooltip content={<ChartTooltip />} />
                         <Legend
                           verticalAlign="bottom"
                           height={36}
@@ -459,7 +553,7 @@ const Dashboard = () => {
                                 }}
                                 aria-hidden
                               />
-                              {cat.name}
+                              {cat.label}
                             </strong>
                             <span>{pct}%</span>
                           </div>
@@ -476,7 +570,7 @@ const Dashboard = () => {
           <section className="panel dashboard__type-pie">
             <div className="dashboard__budget-top">
               <h2>{t("dashboard.incomeVsExpense")}</h2>
-              <span className="dashboard__chip">This month</span>
+                <span className="dashboard__chip">{t("dashboard.thisMonth")}</span>
             </div>
             {typePieData.length === 0 ? (
               <EmptyState
@@ -498,28 +592,26 @@ const Dashboard = () => {
                         innerRadius={58}
                         outerRadius={88}
                         paddingAngle={3}
+                        stroke="var(--surface)"
+                        strokeWidth={2}
                         isAnimationActive={false}
+                        activeShape={renderActivePieShape}
                       >
                         {typePieData.map((entry) => (
                           <Cell
-                            key={entry.name}
+                            key={entry.key}
                             fill={
-                              entry.name === "Income"
+                              entry.key === "income"
                                 ? "var(--income)"
                                 : "var(--expense)"
                             }
+                            stroke="var(--surface)"
+                            strokeWidth={2}
+                            style={{ outline: "none" }}
                           />
                         ))}
                       </Pie>
-                      <Tooltip
-                        formatter={(value) => formatINR(Number(value ?? 0))}
-                        contentStyle={{
-                          borderRadius: 12,
-                          border: "1px solid var(--line)",
-                          background: "var(--surface)",
-                          color: "var(--ink)",
-                        }}
-                      />
+                      <Tooltip content={<ChartTooltip />} />
                       <Legend
                         verticalAlign="bottom"
                         iconType="circle"
@@ -533,7 +625,7 @@ const Dashboard = () => {
                 </div>
                 <ul className="dashboard__type-stats">
                   <li>
-                    <span>Income share</span>
+                    <span>{t("dashboard.incomeShare")}</span>
                     <strong className="is-income">
                       {summary.income + summary.expense
                         ? Math.round(
@@ -546,7 +638,7 @@ const Dashboard = () => {
                     </strong>
                   </li>
                   <li>
-                    <span>Expense share</span>
+                    <span>{t("dashboard.expenseShare")}</span>
                     <strong className="is-expense">
                       {summary.income + summary.expense
                         ? Math.round(
@@ -559,7 +651,7 @@ const Dashboard = () => {
                     </strong>
                   </li>
                   <li>
-                    <span>Total moved</span>
+                    <span>{t("dashboard.totalMoved")}</span>
                     <strong>
                       {formatINR(summary.income + summary.expense)}
                     </strong>
@@ -583,7 +675,7 @@ const Dashboard = () => {
               <EmptyState
                 title={t("transactions.noRecordTitle")}
                 description={t("dashboard.nothingLogged", {
-                  month: monthLabel(month),
+                  month: monthLabel(month, locale),
                 })}
                 action={
                   <Link href="/transactions" className="btn btn-primary">
@@ -599,8 +691,8 @@ const Dashboard = () => {
                       <div>
                         <strong>{tx.description}</strong>
                         <span>
-                          {tx.category} ·{" "}
-                          {new Date(tx.date).toLocaleDateString("en-IN", {
+                          {translateCategory(tx.category, t)} ·{" "}
+                          {new Date(tx.date).toLocaleDateString(locale, {
                             day: "numeric",
                             month: "short",
                           })}
