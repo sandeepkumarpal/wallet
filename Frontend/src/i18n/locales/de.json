@@ -65,7 +65,23 @@
     "appsTitle": "Wallet bald auf dem Handy.",
     "appsSub": "Wir bauen native Apps. Play Store und App Store folgen bald.",
     "comingSoon": "Demnächst",
-    "appsLink": "Mobile Apps"
+    "appsLink": "Mobile Apps",
+    "featuresEyebrow": "In der App",
+    "featuresTitle": "So sieht dein Monat aus.",
+    "featuresSub": "Home, Ausgaben, Budget und Überblick — die Screens für den Alltag.",
+    "featuresNote": "Echte Produkt-Screens — Home, Ausgaben, Budget und Monatsüberblick.",
+    "featuresPrev": "Vorheriger Screen",
+    "featuresNext": "Nächster Screen",
+    "feature": {
+      "home": "Home",
+      "homeDetail": "Was noch bleibt, Einnahmen vs. Ausgaben und letzte Aktivität auf einen Blick.",
+      "spend": "Ausgaben",
+      "spendDetail": "Jeden Betrag erfassen und filtern — inkl. Notizen, Kategorien und Zahlungsmethoden.",
+      "budget": "Budget",
+      "budgetDetail": "Monatslimit setzen und das Tempo je Kategorie im Blick behalten.",
+      "month": "Überblick",
+      "monthDetail": "Nettofluss und Wochenrhythmus — klar lesbar, ohne Lärm."
+    }
   },
   "login": {
     "brandTitle": "Ihr monatliches Geld, klar.",
@@ -250,7 +266,14 @@
     "updatingPassword": "Aktualisieren…",
     "passwordUpdated": "Passwort aktualisiert",
     "passwordFailed": "Passwort konnte nicht geändert werden",
+    "googlePasswordNote": "Du hast dich mit Google angemeldet. Passwörter werden über dein Google-Konto verwaltet.",
     "languageHint": "Wählen Sie Ihre bevorzugte App-Sprache"
+  },
+  "auth": {
+    "orContinueWith": "Oder weiter mit",
+    "continueWithGoogle": "Mit Google fortfahren",
+    "googleFailed": "Google-Anmeldung fehlgeschlagen",
+    "googleNotConfigured": "Tragen Sie NEXT_PUBLIC_GOOGLE_CLIENT_ID in Frontend/.env.local und GOOGLE_CLIENT_ID in Backend/.env ein und starten Sie beide Server neu."
   },
   "validation": {
     "emailRequired": "E-Mail ist erforderlich",

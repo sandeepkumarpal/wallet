@@ -65,7 +65,23 @@
     "appsTitle": "Wallet en tu teléfono, pronto.",
     "appsSub": "Estamos creando apps nativas. Play Store y App Store llegan pronto.",
     "comingSoon": "Próximamente",
-    "appsLink": "Apps móviles"
+    "appsLink": "Apps móviles",
+    "featuresEyebrow": "Dentro de la app",
+    "featuresTitle": "Así se ve tu mes.",
+    "featuresSub": "Inicio, gastos, presupuesto y resumen — las pantallas del día a día.",
+    "featuresNote": "Pantallas reales del producto — inicio, gastos, presupuesto y resumen del mes.",
+    "featuresPrev": "Pantalla anterior",
+    "featuresNext": "Pantalla siguiente",
+    "feature": {
+      "home": "Inicio",
+      "homeDetail": "Lo que queda del mes, ingresos vs gastos y actividad reciente de un vistazo.",
+      "spend": "Gastos",
+      "spendDetail": "Registra y filtra cada peso — notas, categorías y métodos de pago incluidos.",
+      "budget": "Presupuesto",
+      "budgetDetail": "Define un tope mensual y sigue el ritmo por categoría.",
+      "month": "Resumen",
+      "monthDetail": "Flujo neto y ritmo semanal para un mes legible, sin ruido."
+    }
   },
   "login": {
     "brandTitle": "Tu dinero mensual, con claridad.",
@@ -250,7 +266,14 @@
     "updatingPassword": "Actualizando…",
     "passwordUpdated": "Contraseña actualizada",
     "passwordFailed": "No se pudo cambiar la contraseña",
+    "googlePasswordNote": "Iniciaste sesión con Google. La contraseña se gestiona en tu cuenta de Google.",
     "languageHint": "Elige el idioma preferido de la app"
+  },
+  "auth": {
+    "orContinueWith": "O continúa con",
+    "continueWithGoogle": "Continuar con Google",
+    "googleFailed": "Error al iniciar sesión con Google",
+    "googleNotConfigured": "Añade NEXT_PUBLIC_GOOGLE_CLIENT_ID en Frontend/.env.local y GOOGLE_CLIENT_ID en Backend/.env, luego reinicia ambos servidores."
   },
   "validation": {
     "emailRequired": "El correo es obligatorio",

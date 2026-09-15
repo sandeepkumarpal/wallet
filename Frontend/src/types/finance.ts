@@ -18,6 +18,8 @@ export interface User {
   profilePic?: string;
   monthlyBudget?: number;
   categoryBudgets?: CategoryBudget[];
+  authProvider?: "local" | "google" | "both";
+  hasPassword?: boolean;
 }
 
 export interface Transaction {

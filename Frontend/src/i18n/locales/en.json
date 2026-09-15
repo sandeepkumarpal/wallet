@@ -63,6 +63,22 @@
     "appsSub": "We’re building native apps so your budget travels with you. Play Store and App Store releases are coming soon.",
     "comingSoon": "Coming soon",
     "appsLink": "Mobile apps",
+    "featuresEyebrow": "Inside the app",
+    "featuresTitle": "See how your month looks.",
+    "featuresSub": "Home, spend, budget, and overview — the screens you’ll live in, every day.",
+    "featuresNote": "Real product screens — home, spend, budget, and month overview.",
+    "featuresPrev": "Previous screen",
+    "featuresNext": "Next screen",
+    "feature": {
+      "home": "Home",
+      "homeDetail": "What’s left this month, income vs spend, and recent activity at a glance.",
+      "spend": "Spend",
+      "spendDetail": "Log and filter every rupee — notes, categories, and payment methods included.",
+      "budget": "Budget",
+      "budgetDetail": "Set a monthly ceiling and watch category pace before you overshoot.",
+      "month": "Overview",
+      "monthDetail": "Net flow and weekly rhythm so the month stays readable, not noisy."
+    },
     "finaleTitle": "Start this month right.",
     "finaleSub": "Create your account in under a minute and keep your money story simple.",
     "footerNote": "Personal monthly budget tracker"
@@ -250,7 +266,14 @@
     "updatingPassword": "Updating…",
     "passwordUpdated": "Password updated",
     "passwordFailed": "Could not change password",
+    "googlePasswordNote": "You signed in with Google. Password changes are managed through your Google account.",
     "languageHint": "Choose your preferred app language"
+  },
+  "auth": {
+    "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "googleFailed": "Google sign-in failed",
+    "googleNotConfigured": "Add your Google Client ID to Frontend/.env.local (NEXT_PUBLIC_GOOGLE_CLIENT_ID) and Backend/.env (GOOGLE_CLIENT_ID), then restart both servers."
   },
   "validation": {
     "emailRequired": "Email is required",

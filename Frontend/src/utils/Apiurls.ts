@@ -5,6 +5,7 @@ export const API_URLS = {
   BASE_URL,
   LOGIN_USER: "/user/login-user",
   REGISTER_USER: "/user/register-user",
+  GOOGLE_AUTH: "/user/google-auth",
   ME: "/user/me",
   CHANGE_PASSWORD: "/user/change-password",
   TRANSACTIONS: "/transactions",

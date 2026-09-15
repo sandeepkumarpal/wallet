@@ -5,6 +5,7 @@ import LandingNav from "./LandingNav";
 import LandingHero from "./LandingHero";
 import LandingClarity from "./LandingClarity";
 import LandingPlan from "./LandingPlan";
+import LandingFeatures from "./LandingFeatures";
 import LandingSteps from "./LandingSteps";
 import LandingApps from "./LandingApps";
 import LandingFinale from "./LandingFinale";
@@ -21,6 +22,7 @@ const LandingPage = () => {
       <LandingHero signedIn={signedIn} />
       <LandingClarity />
       <LandingPlan />
+      <LandingFeatures />
       <LandingSteps />
       <LandingApps />
       <LandingFinale signedIn={signedIn} />

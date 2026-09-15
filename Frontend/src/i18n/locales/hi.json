@@ -65,7 +65,23 @@
     "appsTitle": "जल्द आपके फ़ोन पर Wallet।",
     "appsSub": "हम नेटिव ऐप्स बना रहे हैं ताकि बजट आपके साथ चले। Play Store और App Store जल्द आ रहे हैं।",
     "comingSoon": "जल्द आ रहा है",
-    "appsLink": "मोबाइल ऐप्स"
+    "appsLink": "मोबाइल ऐप्स",
+    "featuresEyebrow": "ऐप के अंदर",
+    "featuresTitle": "देखें आपका महीना कैसा दिखता है।",
+    "featuresSub": "होम, खर्च, बजट और ओवरव्यू — वे स्क्रीन जहाँ आप रोज़ रहेंगे।",
+    "featuresNote": "असली प्रोडक्ट स्क्रीन — होम, खर्च, बजट और मासिक ओवरव्यू।",
+    "featuresPrev": "पिछली स्क्रीन",
+    "featuresNext": "अगली स्क्रीन",
+    "feature": {
+      "home": "होम",
+      "homeDetail": "इस महीने क्या बचा, आय बनाम खर्च, और हाल की गतिविधि एक नज़र में।",
+      "spend": "खर्च",
+      "spendDetail": "हर रुपये को दर्ज और फ़िल्टर करें — नोट्स, श्रेणियाँ और भुगतान तरीके सहित।",
+      "budget": "बजट",
+      "budgetDetail": "मासिक सीमा तय करें और श्रेणी की गति ओवरशूट से पहले देखें।",
+      "month": "ओवरव्यू",
+      "monthDetail": "नेट फ्लो और साप्ताहिक लय ताकि महीना पठनीय रहे, शोर भरा नहीं।"
+    }
   },
   "login": {
     "brandTitle": "आपका मासिक पैसा, स्पष्ट रूप से।",
@@ -250,7 +266,14 @@
     "updatingPassword": "अपडेट हो रहा है…",
     "passwordUpdated": "पासवर्ड अपडेट हुआ",
     "passwordFailed": "पासवर्ड नहीं बदला जा सका",
+    "googlePasswordNote": "आपने Google से साइन इन किया है। पासवर्ड Google खाते से प्रबंधित होता है।",
     "languageHint": "अपनी पसंदीदा ऐप भाषा चुनें"
+  },
+  "auth": {
+    "orContinueWith": "या इससे जारी रखें",
+    "continueWithGoogle": "Google से जारी रखें",
+    "googleFailed": "Google साइन-इन असफल",
+    "googleNotConfigured": "Frontend/.env.local में NEXT_PUBLIC_GOOGLE_CLIENT_ID और Backend/.env में GOOGLE_CLIENT_ID जोड़ें, फिर दोनों सर्वर रीस्टार्ट करें।"
   },
   "validation": {
     "emailRequired": "ईमेल आवश्यक है",

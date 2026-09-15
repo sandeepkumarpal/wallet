@@ -65,7 +65,23 @@
     "appsTitle": "Wallet sur votre téléphone, bientôt.",
     "appsSub": "Nous préparons des apps natives. Les versions Play Store et App Store arrivent bientôt.",
     "comingSoon": "Bientôt disponible",
-    "appsLink": "Apps mobiles"
+    "appsLink": "Apps mobiles",
+    "featuresEyebrow": "Dans l’app",
+    "featuresTitle": "Voyez à quoi ressemble votre mois.",
+    "featuresSub": "Accueil, dépenses, budget et aperçu — les écrans du quotidien.",
+    "featuresNote": "Vrais écrans produit — accueil, dépenses, budget et aperçu du mois.",
+    "featuresPrev": "Écran précédent",
+    "featuresNext": "Écran suivant",
+    "feature": {
+      "home": "Accueil",
+      "homeDetail": "Le reste du mois, revenus vs dépenses, et l’activité récente d’un coup d’œil.",
+      "spend": "Dépenses",
+      "spendDetail": "Enregistrez et filtrez chaque montant — notes, catégories et moyens de paiement.",
+      "budget": "Budget",
+      "budgetDetail": "Fixez un plafond mensuel et suivez le rythme par catégorie.",
+      "month": "Aperçu",
+      "monthDetail": "Flux net et rythme hebdomadaire pour un mois lisible, sans bruit."
+    }
   },
   "login": {
     "brandTitle": "Votre argent du mois, clairement.",
@@ -250,7 +266,14 @@
     "updatingPassword": "Mise à jour…",
     "passwordUpdated": "Mot de passe mis à jour",
     "passwordFailed": "Impossible de changer le mot de passe",
+    "googlePasswordNote": "Vous vous êtes connecté avec Google. Le mot de passe est géré via votre compte Google.",
     "languageHint": "Choisissez la langue de l’application"
+  },
+  "auth": {
+    "orContinueWith": "Ou continuer avec",
+    "continueWithGoogle": "Continuer avec Google",
+    "googleFailed": "Échec de la connexion Google",
+    "googleNotConfigured": "Ajoutez NEXT_PUBLIC_GOOGLE_CLIENT_ID dans Frontend/.env.local et GOOGLE_CLIENT_ID dans Backend/.env, puis redémarrez les serveurs."
   },
   "validation": {
     "emailRequired": "L’e-mail est requis",

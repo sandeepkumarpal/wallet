@@ -158,25 +158,37 @@ const Profile = () => {
             <h2>{t("profile.changePassword")}</h2>
             {error && <div className="alert alert-error">{error}</div>}
             {success && <div className="alert alert-success">{success}</div>}
-            <PasswordField
-              id="current"
-              label={t("profile.currentPassword")}
-              autoComplete="current-password"
-              error={errors.currentPassword?.message}
-              {...register("currentPassword")}
-            />
-            <PasswordField
-              id="next"
-              label={t("profile.newPassword")}
-              autoComplete="new-password"
-              error={errors.newPassword?.message}
-              {...register("newPassword")}
-            />
-            <button className="btn btn-primary" type="submit" disabled={saving}>
-              {saving
-                ? t("profile.updatingPassword")
-                : t("profile.updatePassword")}
-            </button>
+            {user?.hasPassword === false ? (
+              <p className="profile-page__google-note">
+                {t("profile.googlePasswordNote")}
+              </p>
+            ) : (
+              <>
+                <PasswordField
+                  id="current"
+                  label={t("profile.currentPassword")}
+                  autoComplete="current-password"
+                  error={errors.currentPassword?.message}
+                  {...register("currentPassword")}
+                />
+                <PasswordField
+                  id="next"
+                  label={t("profile.newPassword")}
+                  autoComplete="new-password"
+                  error={errors.newPassword?.message}
+                  {...register("newPassword")}
+                />
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                  disabled={saving}
+                >
+                  {saving
+                    ? t("profile.updatingPassword")
+                    : t("profile.updatePassword")}
+                </button>
+              </>
+            )}
           </form>
 
           <button

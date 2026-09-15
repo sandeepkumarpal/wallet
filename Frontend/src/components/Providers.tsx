@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import type { ThemeMode } from "@/context/themeConfig";
 import { NotificationProvider } from "@/context/NotificationContext";
 import I18nProvider from "@/components/I18nProvider";
+import GoogleAuthProvider from "@/components/GoogleAuthProvider";
 import AppShell from "@/components/AppShell";
 
 export default function Providers({
@@ -20,11 +21,13 @@ export default function Providers({
   return (
     <I18nProvider initialLanguage={initialLanguage}>
       <ThemeProvider initialTheme={initialTheme}>
-        <AuthProvider>
-          <NotificationProvider>
-            <AppShell>{children}</AppShell>
-          </NotificationProvider>
-        </AuthProvider>
+        <GoogleAuthProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <AppShell>{children}</AppShell>
+            </NotificationProvider>
+          </AuthProvider>
+        </GoogleAuthProvider>
       </ThemeProvider>
     </I18nProvider>
   );

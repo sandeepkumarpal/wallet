@@ -10,6 +10,7 @@ import { getErrorMessage, useAuth } from "../../../context/AuthContext";
 import PasswordField from "../../Common/PasswordField/PasswordField";
 import FieldError from "../../Common/FieldError/FieldError";
 import LanguageSwitcher from "../../Common/LanguageSwitcher/LanguageSwitcher";
+import GoogleSignInButton from "../../Common/GoogleSignInButton/GoogleSignInButton";
 import {
   createLoginSchema,
   type LoginFormValues,
@@ -101,6 +102,11 @@ const Login = () => {
         <button className="btn btn-primary" type="submit" disabled={submitting}>
           {submitting ? t("login.submitting") : t("login.submit")}
         </button>
+
+        <GoogleSignInButton
+          onSuccessNavigate={() => router.push("/dashboard")}
+          onError={setError}
+        />
 
         <p className="auth-page__switch">
           {t("login.newHere")}{" "}

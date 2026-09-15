@@ -5,10 +5,14 @@ export interface ICategoryBudget {
   limit: number;
 }
 
+export type AuthProvider = "local" | "google" | "both";
+
 export interface IUser extends Document {
   fullName: string;
   email: string;
-  password: string;
+  password?: string;
+  googleId?: string;
+  authProvider: AuthProvider;
   profilePic?: string;
   monthlyBudget: number;
   categoryBudgets: ICategoryBudget[];
@@ -39,8 +43,19 @@ const userSchema: Schema<IUser> = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+    },
+    googleId: {
+      type: String,
+      sparse: true,
+      unique: true,
+      trim: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "both"],
+      default: "local",
     },
     profilePic: {
       type: String,
