@@ -11,7 +11,8 @@ connectDB()
     });
     const port = Number(process.env.PORT) || 8000;
     app.listen(port, "0.0.0.0", () => {
-      console.log(`app is running on Port ${port}`);
+      console.log(`Wallet API started on port ${port}`);
+      console.log(`Health check: /api/v1/health-check`);
     });
   })
   .catch((err) => console.log(`MongoDB connection failed !!! ${err}`));
