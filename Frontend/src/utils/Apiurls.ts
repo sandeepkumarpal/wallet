@@ -1,5 +1,7 @@
-// Same-origin path so phones on LAN hit Next.js (:5173), which proxies to the backend.
-const BASE_URL = "/api/v1";
+const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "/api/v1").replace(
+  /\/$/,
+  ""
+);
 
 export const API_URLS = {
   BASE_URL,
