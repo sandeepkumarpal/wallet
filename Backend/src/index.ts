@@ -9,8 +9,9 @@ connectDB()
     app.on("error", (error: unknown) => {
       console.log("Err:", error);
     });
-    app.listen(process.env.PORT || 8000, () => {
-      console.log(`app is running on Port ${process.env.PORT}`);
+    const port = Number(process.env.PORT) || 8000;
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`app is running on Port ${port}`);
     });
   })
   .catch((err) => console.log(`MongoDB connection failed !!! ${err}`));
